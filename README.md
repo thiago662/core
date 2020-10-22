@@ -9,6 +9,29 @@
 
 ## About Laravel
 
+1 - Baixar a pasta vendor com todas as dependencias
+    `composer update`
+
+2 - Cria o arquivo .env copiando o .env.exemple
+    windows: `copy .env.example .env`
+    mac: `cp .env.example .env`
+
+3 - Gera uma chave para o projeto
+    `php artisan key:generate`
+
+4 - Gera uma chave para o jwt
+    `php artisan jwt:secret`
+
+5 - criar o banco fw no postgres ou sql
+
+5 - Alterações para serem feitas no .env
+    `DB_CONNECTION=pgsql` ou `DB_CONNECTION=mysql`
+    `DB_HOST=127.0.0.1`
+    `DB_PORT=5432` ou `DB_PORT=3306`
+    `DB_DATABASE=fw`
+    `DB_USERNAME=postgres` ou o que você deixou configurado
+    `DB_PASSWORD=root` ou o que você deixou configurado
+
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
 - [Simple, fast routing engine](https://laravel.com/docs/routing).
@@ -23,13 +46,7 @@ Laravel is accessible, powerful, and provides tools required for large, robust a
 
 ## Learning Laravel
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
 
 ### Premium Partners
 
