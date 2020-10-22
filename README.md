@@ -25,11 +25,11 @@
 5 - criar o banco fw no postgres ou sql
 
 5 - Alterações para serem feitas no .env
-    `DB_CONNECTION=pgsql` ou `DB_CONNECTION=mysql`
-    `DB_HOST=127.0.0.1`
-    `DB_PORT=5432` ou `DB_PORT=3306`
-    `DB_DATABASE=fw`
-    `DB_USERNAME=postgres` ou o que você deixou configurado
+    `DB_CONNECTION=pgsql` ou `DB_CONNECTION=mysql`,
+    `DB_HOST=127.0.0.1`,
+    `DB_PORT=5432` ou `DB_PORT=3306`,
+    `DB_DATABASE=fw`,
+    `DB_USERNAME=postgres` ou o que você deixou configurado,
     `DB_PASSWORD=root` ou o que você deixou configurado
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
