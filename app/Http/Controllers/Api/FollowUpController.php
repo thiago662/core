@@ -75,23 +75,4 @@ class FollowUpController extends Controller
             return response()->json($message->getMessage(), 401);
         }
     }
-
-    public function destroy($id)
-    {
-        try {
-            $this->followUp
-                ->findOrFail($id)
-                ->delete();
-
-            return response()->json([
-                'data' => [
-                    'msg' => 'FollowUp deleted with success'
-                ]
-            ], 200);
-        } catch (\Exception $e) {
-            $message = new ApiMessages($e->getMessage());
-            
-            return response()->json($message->getMessage(), 401);
-        }
-    }
 }
