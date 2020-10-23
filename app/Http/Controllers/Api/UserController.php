@@ -22,7 +22,7 @@ class UserController extends Controller
     public function index()
     {
         $enterprise_id = auth('api')->user()->enterprise_id;
-        $users = $this->user->where('enterprise_id', $enterprise_id)->get();
+        $users = $this->user->where('enterprise_id', $enterprise_id)->orderBy('id')->get();
 
         return response()->json($users, 200);
     }
