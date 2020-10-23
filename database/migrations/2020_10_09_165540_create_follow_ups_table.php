@@ -16,7 +16,6 @@ class CreateFollowUpsTable extends Migration
         Schema::create('follow_ups', function (Blueprint $table) {
             $table->id();
             $table->string('type');
-            $table->string('status');
             $table->string('message')->nullable();
             $table->foreignId('lead_id');
             $table->foreign('lead_id')->references('id')->on('leads');
