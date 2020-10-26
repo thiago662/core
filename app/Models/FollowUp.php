@@ -15,6 +15,7 @@ class FollowUp extends Model
     protected $fillable = [
         'type',
         'message',
+        'value',
         'lead_id'
     ];
 

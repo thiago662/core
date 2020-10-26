@@ -39,7 +39,6 @@ class LeadController extends Controller
                 ->create(
                     [
                         'type' => $data['type'],
-                        'status' => $data['status'],
                         'message' => $data['messageFollowUp']
                     ]
                 );

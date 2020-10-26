@@ -17,6 +17,7 @@ class CreateFollowUpsTable extends Migration
             $table->id();
             $table->string('type');
             $table->string('message')->nullable();
+            $table->double('value')->nullable();
             $table->foreignId('lead_id');
             $table->foreign('lead_id')->references('id')->on('leads');
             $table->softDeletes();
