@@ -45,7 +45,7 @@ class FollowUpController extends Controller
     public function show($id)
     {
         try {
-            $followUp = $this->followUp->where('lead_id', $id)->get();
+            $followUp = $this->followUp->where('lead_id', $id)->orderBy('id','DESC')->get();
 
             return response()->json($followUp, 200);
         } catch (\Exception $e) {

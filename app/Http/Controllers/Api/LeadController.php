@@ -20,7 +20,7 @@ class LeadController extends Controller
     public function index()
     {
         $enterprise_id = auth('api')->user()->enterprise_id;
-        $leads = $this->lead->where('enterprise_id', $enterprise_id)->get();
+        $leads = $this->lead->with('user')->where('enterprise_id', $enterprise_id)->orderBy('id')->get();
 
         return response()->json($leads, 200);
     }
@@ -32,6 +32,8 @@ class LeadController extends Controller
         try {
             $enterprise_id = auth('api')->user()->enterprise_id;
             $data['enterprise_id'] = $enterprise_id;
+            $data['status'] = "0";
+            $data['type'] = "criado";
             
             $this->lead
                 ->create($data)
@@ -39,7 +41,7 @@ class LeadController extends Controller
                 ->create(
                     [
                         'type' => $data['type'],
-                        'message' => $data['messageFollowUp']
+                        'message' => "lead criado"
                     ]
                 );
 
@@ -59,7 +61,7 @@ class LeadController extends Controller
     {
         try {
             $enterprise_id = auth('api')->user()->enterprise_id;
-            $lead = $this->lead->with('followUp')->where('enterprise_id', $enterprise_id)->findOrFail($id);
+            $lead = $this->lead->with(['followUp','user'])->where('enterprise_id', $enterprise_id)->findOrFail($id);
 
             return response()->json($lead, 200);
         } catch (\Exception $e) {

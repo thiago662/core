@@ -52,6 +52,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsTo(Enterprise::class);
     }
 
+    public function lead()
+    {
+        return $this->hasMany(Lead::class);
+    }
+
     public function getJWTIdentifier()
     {
         return $this->getKey();

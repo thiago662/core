@@ -14,8 +14,7 @@ class Lead extends Model
 
     protected $fillable = [
         'name',
-        'email',
-        'phone',
+        'contact',
         'source',
         'message',
         'status',
@@ -31,5 +30,10 @@ class Lead extends Model
     public function enterprise()
     {
         return $this->belongsTo(Enterprise::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

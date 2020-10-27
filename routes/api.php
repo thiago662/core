@@ -65,9 +65,9 @@ Route::prefix('v1')->group(function () {
     
         // FolllowUps = store, show;
         // middleware = ;
-        Route::name('followUps.')->group(function () {
+        Route::name('followups.')->group(function () {
 
-            Route::apiResource('followUps', FollowUpController::class)->only([
+            Route::apiResource('followups', FollowUpController::class)->only([
                 'store','show'
             ]);
     

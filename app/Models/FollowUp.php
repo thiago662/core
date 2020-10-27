@@ -12,11 +12,14 @@ class FollowUp extends Model
 
     use SoftDeletes;
 
+    public $timestamps = true;
+
     protected $fillable = [
         'type',
         'message',
         'value',
-        'lead_id'
+        'lead_id',
+        'created_at'
     ];
 
     public function lead()
