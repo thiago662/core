@@ -120,4 +120,29 @@ class UserController extends Controller
             return response()->json($message->getMessage(), 401);
         }
     }
+
+    //filtro
+    public function filter(Request $request)
+    {
+        $data = $request;
+        $proc = "";
+        $users = $this->user;
+
+        if (isset($data['name']) && $data['name'] != '') {
+            $proc = "%".$data['name']."%";
+            $users = $users->where('name', 'LIKE', $proc);
+        }
+
+        if (isset($data['email']) && $data['email'] != '') {
+            $proc = "%".$data['email']."%";
+            $users = $users->where('email', 'LIKE', $proc);
+        }
+
+        if (isset($data['type']) && $data['type'] != '') {
+            $proc = "%".$data['type']."%";
+            $users = $users->where('type', 'LIKE', $proc);
+        }
+
+        return response()->json($users->get());
+    }
 }

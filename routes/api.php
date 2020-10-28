@@ -52,6 +52,9 @@ Route::prefix('v1')->group(function () {
         Route::name('users.')->group(function () {
 
             Route::apiResource('users', UserController::class);
+
+            // Filtro
+            Route::post('users/filter', [UserController::class, 'filter']);
     
         });
     
@@ -60,6 +63,9 @@ Route::prefix('v1')->group(function () {
         Route::name('leads.')->group(function () {
 
             Route::apiResource('leads', LeadController::class);
+
+            // Filtro
+            Route::post('leads/filter', [LeadController::class, 'filter']);
     
         });
     

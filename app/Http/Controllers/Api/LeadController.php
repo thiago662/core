@@ -14,13 +14,22 @@ class LeadController extends Controller
     public function __construct(Lead $lead)
     {
         $this->lead = $lead;
-        $this->middleware('administrator')->only('index');
+        // $this->middleware('administrator')->only('index');
     }
 
     public function index()
     {
         $enterprise_id = auth('api')->user()->enterprise_id;
-        $leads = $this->lead->with('user')->where('enterprise_id', $enterprise_id)->orderBy('id')->get();
+        $user_id = auth('api')->user()->id;
+        $user_type = auth('api')->user()->type;
+
+        if ($user_type == "administrador") {
+            $leads = $this->lead->with('user')->where('enterprise_id', $enterprise_id)->orderBy('id')->get();
+        } else {
+            $leads = $this->lead->with('user')->where('enterprise_id', $enterprise_id)->where('user_id', $user_id)->orderBy('id')->get();
+        }
+
+        // $leads = $this->lead->with('user')->where('enterprise_id', $enterprise_id)->orderBy('id')->get();
 
         return response()->json($leads, 200);
     }
@@ -109,5 +118,35 @@ class LeadController extends Controller
             
             return response()->json($message->getMessage(), 401);
         }
+    }
+
+    //filtro
+    public function filter(Request $request)
+    {
+        $data = $request;
+        $proc = "";
+        $leads = $this->lead;
+
+        if (isset($data['name']) && $data['name'] != '') {
+            $proc = "%".$data['name']."%";
+            $leads = $leads->where('name', 'LIKE', $proc);
+        }
+
+        if (isset($data['contact']) && $data['contact'] != '') {
+            $proc = "%".$data['contact']."%";
+            $leads = $leads->where('contact', 'LIKE', $proc);
+        }
+
+        if (isset($data['type']) && $data['type'] != '') {
+            $proc = "%".$data['type']."%";
+            $leads = $leads->where('type', 'LIKE', $proc);
+        }
+
+        if (isset($data['source']) && $data['source'] != '') {
+            $proc = "%".$data['source']."%";
+            $leads = $leads->where('source', 'LIKE', $proc);
+        }
+
+        return response()->json($leads->get());
     }
 }
