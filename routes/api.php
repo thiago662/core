@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EnterpriseController;
 use App\Http\Controllers\Api\FollowUpController;
 use App\Http\Controllers\Api\LeadController;
@@ -76,6 +77,14 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('followups', FollowUpController::class)->only([
                 'store','show'
             ]);
+    
+        });
+    
+        // FolllowUps = store, show;
+        // middleware = ;
+        Route::name('dashboard.')->group(function () {
+
+            Route::get('dashboard', [DashboardController::class, 'index']);
     
         });
 
