@@ -16,7 +16,7 @@ class UserController extends Controller
     public function __construct(User $user)
     {
         $this->user = $user;
-        $this->middleware('administrator')->only(['index','store','destroy']);
+        $this->middleware('administrator')->only(['index', 'store', 'destroy', 'filter']);
     }
 
     public function index()
@@ -33,7 +33,7 @@ class UserController extends Controller
 
         if (!$request->has('password') || !$request->get('password')) {
             $message = new ApiMessages('You need to have a password');
-            
+
             return response()->json($message->getMessage(), 401);
         }
 
@@ -47,7 +47,7 @@ class UserController extends Controller
                 'data' => [
                     'msg' => 'User created with success'
                 ]
-            ], 200);
+            ], 201);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -75,7 +75,7 @@ class UserController extends Controller
 
         Validator::make($data, [
             'name' => 'required',
-            'email' => 'required|email|unique:users,email,'. $id .',id',
+            'email' => 'required|email|unique:users,email,' . $id . ',id',
             'type' => 'required'
         ])->validate();
 
@@ -116,33 +116,46 @@ class UserController extends Controller
             ], 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
-            
+
             return response()->json($message->getMessage(), 401);
         }
     }
 
-    //filtro
     public function filter(Request $request)
     {
-        $data = $request;
-        $proc = "";
-        $users = $this->user;
+        try {
+            $data = $request;
+            $proc = "";
+            $users = $this->user;
 
-        if (isset($data['name']) && $data['name'] != '') {
-            $proc = "%".$data['name']."%";
-            $users = $users->where('name', 'LIKE', $proc);
+            if (isset($data['name']) && $data['name'] != '') {
+                $proc = "%" . $data['name'] . "%";
+                $users = $users->where('name', 'LIKE', $proc);
+            }
+
+            if (isset($data['email']) && $data['email'] != '') {
+                $proc = "%" . $data['email'] . "%";
+                $users = $users->where('email', 'LIKE', $proc);
+            }
+
+            if (isset($data['type']) && $data['type'] != '') {
+                $proc = "%" . $data['type'] . "%";
+                $users = $users->where('type', 'LIKE', $proc);
+            }
+
+            return response()->json($users->get(), 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
         }
+    }
 
-        if (isset($data['email']) && $data['email'] != '') {
-            $proc = "%".$data['email']."%";
-            $users = $users->where('email', 'LIKE', $proc);
-        }
+    public function clearks()
+    {
+        $enterprise_id = auth('api')->user()->enterprise_id;
+        $users = $this->user->where('enterprise_id', $enterprise_id)->where('id', '!=', auth('api')->user()->id)->orderBy('id')->get();
 
-        if (isset($data['type']) && $data['type'] != '') {
-            $proc = "%".$data['type']."%";
-            $users = $users->where('type', 'LIKE', $proc);
-        }
-
-        return response()->json($users->get());
+        return response()->json($users, 200);
     }
 }

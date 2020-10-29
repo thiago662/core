@@ -22,7 +22,7 @@ class EnterpriseController extends Controller
     {
         $user = auth('api')->user();
         $enterprise = $this->enterprise->findOrFail($user->enterprise_id);
-        
+
         return response()->json([
             'enterprise' => $enterprise,
             'user' => $user
@@ -35,7 +35,7 @@ class EnterpriseController extends Controller
 
         if (!$request->has('password') || !$request->get('password')) {
             $message = new ApiMessages('You need to have a password');
-            
+
             return response()->json($message->getMessage(), 401);
         }
 
@@ -68,7 +68,7 @@ class EnterpriseController extends Controller
             return response()->json($enterprise, 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
-            
+
             return response()->json($message->getMessage(), 401);
         }
     }

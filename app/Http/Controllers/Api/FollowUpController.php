@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Api\ApiMessages;
 use App\Http\Controllers\Controller;
 use App\Models\FollowUp;
+use App\Models\Lead;
 use Illuminate\Http\Request;
 
 class FollowUpController extends Controller
@@ -29,12 +30,15 @@ class FollowUpController extends Controller
 
         try {
             $this->followUp->create($data);
+            $lead = Lead::find($data['lead_id']);
+            $lead->status = 1;
+            $lead->save();
 
             return response()->json([
                 'data' => [
                     'msg' => 'FollowUp created with success'
                 ]
-            ]);
+            ], 201);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 

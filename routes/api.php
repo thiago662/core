@@ -55,7 +55,10 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('users', UserController::class);
 
             // Filtro
-            Route::post('users/filter', [UserController::class, 'filter']);
+            Route::post('users/filter', [UserController::class, 'filter'])->name('users.filter');
+
+            // Filtro
+            Route::post('users/clearks', [UserController::class, 'clearks'])->name('users.clearks');
     
         });
     
@@ -84,7 +87,13 @@ Route::prefix('v1')->group(function () {
         // middleware = ;
         Route::name('dashboard.')->group(function () {
 
-            Route::get('dashboard', [DashboardController::class, 'index']);
+            Route::get('dashboard/total', [DashboardController::class, 'leadsTotal']);
+
+            Route::get('dashboard/ranking', [DashboardController::class, 'ranking']);
+
+            Route::get('dashboard/open', [DashboardController::class, 'leadsOpen']);
+
+            Route::get('dashboard/finished', [DashboardController::class, 'leadsFinished']);
     
         });
 

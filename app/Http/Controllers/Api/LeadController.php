@@ -43,7 +43,7 @@ class LeadController extends Controller
             $data['enterprise_id'] = $enterprise_id;
             $data['status'] = "0";
             $data['type'] = "criado";
-            
+
             $this->lead
                 ->create($data)
                 ->followUp()
@@ -58,7 +58,7 @@ class LeadController extends Controller
                 'data' => [
                     'msg' => 'Lead created with success'
                 ]
-            ]);
+            ], 201);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -70,7 +70,7 @@ class LeadController extends Controller
     {
         try {
             $enterprise_id = auth('api')->user()->enterprise_id;
-            $lead = $this->lead->with(['followUp','user'])->where('enterprise_id', $enterprise_id)->findOrFail($id);
+            $lead = $this->lead->with(['followUp', 'user'])->where('enterprise_id', $enterprise_id)->findOrFail($id);
 
             return response()->json($lead, 200);
         } catch (\Exception $e) {
@@ -115,7 +115,7 @@ class LeadController extends Controller
             ], 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
-            
+
             return response()->json($message->getMessage(), 401);
         }
     }
@@ -123,30 +123,36 @@ class LeadController extends Controller
     //filtro
     public function filter(Request $request)
     {
-        $data = $request;
-        $proc = "";
-        $leads = $this->lead;
+        try {
+            $data = $request;
+            $proc = "";
+            $leads = $this->lead;
 
-        if (isset($data['name']) && $data['name'] != '') {
-            $proc = "%".$data['name']."%";
-            $leads = $leads->where('name', 'LIKE', $proc);
+            if (isset($data['name']) && $data['name'] != '') {
+                $proc = "%" . $data['name'] . "%";
+                $leads = $leads->where('name', 'LIKE', $proc);
+            }
+
+            if (isset($data['contact']) && $data['contact'] != '') {
+                $proc = "%" . $data['contact'] . "%";
+                $leads = $leads->where('contact', 'LIKE', $proc);
+            }
+
+            if (isset($data['type']) && $data['type'] != '') {
+                $proc = "%" . $data['type'] . "%";
+                $leads = $leads->where('type', 'LIKE', $proc);
+            }
+
+            if (isset($data['source']) && $data['source'] != '') {
+                $proc = "%" . $data['source'] . "%";
+                $leads = $leads->where('source', 'LIKE', $proc);
+            }
+
+            return response()->json($leads->get(), 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
         }
-
-        if (isset($data['contact']) && $data['contact'] != '') {
-            $proc = "%".$data['contact']."%";
-            $leads = $leads->where('contact', 'LIKE', $proc);
-        }
-
-        if (isset($data['type']) && $data['type'] != '') {
-            $proc = "%".$data['type']."%";
-            $leads = $leads->where('type', 'LIKE', $proc);
-        }
-
-        if (isset($data['source']) && $data['source'] != '') {
-            $proc = "%".$data['source']."%";
-            $leads = $leads->where('source', 'LIKE', $proc);
-        }
-
-        return response()->json($leads->get());
     }
 }
