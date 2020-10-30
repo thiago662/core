@@ -83,7 +83,7 @@ Route::prefix('v1')->group(function () {
     
         });
     
-        // FolllowUps = store, show;
+        // Dashboard = ;
         // middleware = ;
         Route::name('dashboard.')->group(function () {
 
