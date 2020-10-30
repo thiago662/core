@@ -29,10 +29,22 @@ class FollowUpController extends Controller
         $data = $request->all();
 
         try {
-            $this->followUp->create($data);
-            $lead = Lead::find($data['lead_id']);
-            $lead->status = 1;
-            $lead->save();
+            if (isset($data['type']) && $data['type'] == "anotado") {
+                $this->followUp->create($data);
+                $lead = Lead::find($data['lead_id']);
+                $lead->status = 1;
+                $lead->save();
+            } else if (isset($data['type']) && $data['type'] == "vendido") {
+                $this->followUp->create($data);
+                $lead = Lead::find($data['lead_id']);
+                $lead->status = 2;
+                $lead->save();
+            } else if (isset($data['type']) && $data['type'] == "n_vendido") {
+                $this->followUp->create($data);
+                $lead = Lead::find($data['lead_id']);
+                $lead->status = 2;
+                $lead->save();
+            }
 
             return response()->json([
                 'data' => [

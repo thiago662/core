@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Api\ApiMessages;
 use App\Http\Requests\UserRequest;
+use App\Models\Lead;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -105,6 +106,8 @@ class UserController extends Controller
     public function destroy($id)
     {
         try {
+            Lead::where('user_id', $id)->delete();
+
             $this->user
                 ->findOrFail($id)
                 ->delete();
@@ -143,7 +146,7 @@ class UserController extends Controller
                 $users = $users->where('type', 'LIKE', $proc);
             }
 
-            return response()->json($users->get(), 200);
+            return response()->json($users->orderBy('id')->get(), 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 

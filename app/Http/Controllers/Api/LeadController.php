@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Api\ApiMessages;
 use App\Http\Controllers\Controller;
 use App\Models\Lead;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class LeadController extends Controller
@@ -126,7 +128,7 @@ class LeadController extends Controller
         try {
             $data = $request;
             $proc = "";
-            $leads = $this->lead;
+            $leads = $this->lead->with('user');
 
             if (isset($data['name']) && $data['name'] != '') {
                 $proc = "%" . $data['name'] . "%";
@@ -138,17 +140,16 @@ class LeadController extends Controller
                 $leads = $leads->where('contact', 'LIKE', $proc);
             }
 
-            if (isset($data['type']) && $data['type'] != '') {
-                $proc = "%" . $data['type'] . "%";
-                $leads = $leads->where('type', 'LIKE', $proc);
-            }
-
             if (isset($data['source']) && $data['source'] != '') {
                 $proc = "%" . $data['source'] . "%";
                 $leads = $leads->where('source', 'LIKE', $proc);
             }
 
-            return response()->json($leads->get(), 200);
+            if (isset($data['user_id']) && $data['user_id'] != '') {
+                $leads = $leads->where('user_id', '=', $data['user_id']);
+            }
+
+            return response()->json($leads->orderBy('id')->get(), 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
