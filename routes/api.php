@@ -87,13 +87,15 @@ Route::prefix('v1')->group(function () {
         // middleware = ;
         Route::name('dashboard.')->group(function () {
 
-            Route::get('dashboard/total', [DashboardController::class, 'leadsTotal']);
-
             Route::get('dashboard/ranking', [DashboardController::class, 'ranking']);
+
+            Route::get('dashboard/total', [DashboardController::class, 'leadsTotal']);
 
             Route::get('dashboard/open', [DashboardController::class, 'leadsOpen']);
 
             Route::get('dashboard/finished', [DashboardController::class, 'leadsFinished']);
+
+            Route::get('dashboard/sales', [DashboardController::class, 'leadsSales']);
     
         });
 

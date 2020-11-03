@@ -61,6 +61,26 @@ class DashboardController extends Controller
         }
     }
 
+    public function leadsSales()
+    {
+        try {
+            $leads = count(
+                Lead::join('follow_ups','leads.id','=','follow_ups.lead_id')
+                    ->where('follow_ups.type', 'vendido')
+                    ->where('leads.status', 2)
+                    ->get()
+            );
+
+            return response()->json([
+                'leads_sales' => $leads
+            ], 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
+        }
+    }
+
     public function ranking()
     {
         try {
@@ -70,16 +90,16 @@ class DashboardController extends Controller
             foreach ($users as $user) {
                 $leads = Lead::where("user_id", $user->id)->get()->count();
 
-                $vendas = count(
+                $sales = count(
                     Lead::join('follow_ups','leads.id','=','follow_ups.lead_id')
                         ->where('leads.user_id', $user->id)
                         ->where('follow_ups.type', 'vendido')
                         ->get()
                 );
 
-                array_push($teste, array("id" => $user->id, "user" => $user->name, "leads" => $leads, "vendas" => $vendas));
+                array_push($teste, array("id" => $user->id, "user" => $user->name, "leads" => $leads, "sales" => $sales));
             }
-            $teste1 = array_column($teste, 'vendas');
+            $teste1 = array_column($teste, 'sales');
             array_multisort($teste1, SORT_DESC, $teste);
 
             return response()->json($teste, 200);
