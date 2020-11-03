@@ -49,7 +49,7 @@ class DashboardController extends Controller
     public function leadsFinished()
     {
         try {
-            $leads = count(FollowUp::where("type", "finalizado")->get());
+            $leads = count(Lead::where("status", "2")->get());
 
             return response()->json([
                 'leads_finished' => $leads
