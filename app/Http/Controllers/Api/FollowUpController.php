@@ -32,7 +32,9 @@ class FollowUpController extends Controller
             if (isset($data['type']) && $data['type'] == "anotado") {
                 $this->followUp->create($data);
                 $lead = Lead::find($data['lead_id']);
-                $lead->status = 1;
+                if ($lead->status == 0) {
+                    $lead->status = 1;
+                }
                 $lead->save();
             } else if (isset($data['type']) && $data['type'] == "vendido") {
                 $this->followUp->create($data);
