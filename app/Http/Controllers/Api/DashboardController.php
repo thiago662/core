@@ -107,8 +107,8 @@ class DashboardController extends Controller
     public function graphic()
     {
         $teste = Lead::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
-        ->groupBy('date')
-        ->get();
+            ->groupBy('date')
+            ->get();
 
         $teste1 = [];
 
