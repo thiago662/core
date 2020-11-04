@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Api\ApiMessages;
-use App\Http\Controllers\Controller;
-use App\Models\FollowUp;
-use Illuminate\Http\Request;
 use App\Models\Lead;
 use App\Models\User;
+use App\Models\FollowUp;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -100,5 +102,20 @@ class DashboardController extends Controller
 
             return response()->json($message->getMessage(), 401);
         }
+    }
+
+    public function graphic()
+    {
+        $teste = Lead::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
+        ->groupBy('date')
+        ->get();
+
+        $teste1 = [];
+
+        foreach($teste as $value){
+            array_push($teste1, [strtotime($value['date']) * 1000,$value['leads']]);
+        }
+
+        return response()->json($teste1, 200);
     }
 }

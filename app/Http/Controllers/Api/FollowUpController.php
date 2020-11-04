@@ -30,20 +30,28 @@ class FollowUpController extends Controller
 
         try {
             if (isset($data['type']) && $data['type'] == "anotado") {
+                unset($data['created_at']);
                 $this->followUp->create($data);
+
                 $lead = Lead::find($data['lead_id']);
                 if ($lead->status == 0) {
                     $lead->status = 1;
                 }
                 $lead->save();
             } else if (isset($data['type']) && $data['type'] == "vendido") {
+                if($data['created_at'] == ""){
+                    unset($data['created_at']);
+                }
                 $data['message'] = "lead vendido";
                 $this->followUp->create($data);
+
                 $lead = Lead::find($data['lead_id']);
                 $lead->status = 2;
                 $lead->save();
             } else if (isset($data['type']) && $data['type'] == "n_vendido") {
+                unset($data['created_at']);
                 $this->followUp->create($data);
+
                 $lead = Lead::find($data['lead_id']);
                 $lead->status = 2;
                 $lead->save();
