@@ -21,9 +21,7 @@ class DashboardController extends Controller
         try {
             $leads = count(Lead::all());
 
-            return response()->json([
-                'leads_total' => $leads
-            ], 200);
+            return response()->json($leads, 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -36,9 +34,7 @@ class DashboardController extends Controller
         try {
             $leads = count(Lead::where("status", "0")->get());
 
-            return response()->json([
-                'leads_open' => $leads
-            ], 200);
+            return response()->json($leads, 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -51,9 +47,7 @@ class DashboardController extends Controller
         try {
             $leads = count(Lead::where("status", "2")->get());
 
-            return response()->json([
-                'leads_finished' => $leads
-            ], 200);
+            return response()->json($leads, 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -71,9 +65,7 @@ class DashboardController extends Controller
                     ->get()
             );
 
-            return response()->json([
-                'leads_sales' => $leads
-            ], 200);
+            return response()->json($leads, 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 

@@ -58,7 +58,7 @@ Route::prefix('v1')->group(function () {
             Route::post('users/filter', [UserController::class, 'filter'])->name('users.filter');
 
             // Todos menos atendente
-            Route::post('users/clearks', [UserController::class, 'clearks'])->name('users.clearks');
+            Route::get('clerks', [UserController::class, 'clerks'])->name('users.clerks');
     
         });
     

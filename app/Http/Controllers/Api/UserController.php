@@ -17,7 +17,7 @@ class UserController extends Controller
     public function __construct(User $user)
     {
         $this->user = $user;
-        $this->middleware('administrator')->only(['index', 'store', 'destroy', 'filter']);
+        $this->middleware('administrator')->only(['index', 'store', 'destroy', 'filter', 'clerks']);
     }
 
     public function index()
@@ -154,10 +154,10 @@ class UserController extends Controller
         }
     }
 
-    public function clearks()
+    public function clerks()
     {
-        $enterprise_id = auth('api')->user()->enterprise_id;
-        $users = $this->user->where('enterprise_id', $enterprise_id)->where('id', '!=', auth('api')->user()->id)->orderBy('id')->get();
+        $user = auth('api')->user();
+        $users = $this->user->where('enterprise_id', $user->enterprise_id)->where('id', '!=', $user->id)->orderBy('id')->get();
 
         return response()->json($users, 200);
     }

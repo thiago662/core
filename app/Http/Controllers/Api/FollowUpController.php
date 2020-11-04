@@ -37,6 +37,7 @@ class FollowUpController extends Controller
                 }
                 $lead->save();
             } else if (isset($data['type']) && $data['type'] == "vendido") {
+                $data['message'] = "lead vendido";
                 $this->followUp->create($data);
                 $lead = Lead::find($data['lead_id']);
                 $lead->status = 2;
