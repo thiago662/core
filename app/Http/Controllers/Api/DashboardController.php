@@ -118,4 +118,54 @@ class DashboardController extends Controller
 
         return response()->json($teste1, 200);
     }
+
+    public function graphicOpen()
+    {
+        $teste = Lead::where('status','0')
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
+            ->groupBy('date')
+            ->get();
+
+        $teste1 = [];
+
+        foreach($teste as $value){
+            array_push($teste1, [strtotime($value['date']) * 1000,$value['leads']]);
+        }
+
+        return response()->json($teste1, 200);
+    }
+
+    public function graphicClose()
+    {
+        $teste = Lead::where('status','2')
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
+            ->groupBy('date')
+            ->get();
+
+        $teste1 = [];
+
+        foreach($teste as $value){
+            array_push($teste1, [strtotime($value['date']) * 1000,$value['leads']]);
+        }
+
+        return response()->json($teste1, 200);
+    }
+
+    public function graphicSale()
+    {
+        $teste = Lead::join('follow_ups','leads.id','=','follow_ups.lead_id')
+            ->where('follow_ups.type', 'vendido')
+            ->where('leads.status', 2)
+            ->select(DB::raw('DATE(follow_ups.created_at) as date'), DB::raw('count(*) as leads'))
+            ->groupBy('date')
+            ->get();
+
+        $teste1 = [];
+
+        foreach($teste as $value){
+            array_push($teste1, [strtotime($value['date']) * 1000,$value['leads']]);
+        }
+
+        return response()->json($teste1, 200);
+    }
 }
