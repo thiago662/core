@@ -164,7 +164,8 @@ class LeadController extends Controller
             }
 
             if (isset($data['user_id']) && $data['user_id'] != '') {
-                $leads = $leads->where('user_id', '=', $data['user_id']);
+                // $leads = $leads->where('user_id', $data['user_id']);
+                $leads = $leads->whereIn('user_id', $data['user_id']);
             }
 
             return response()->json($leads->orderBy('id')->get(), 200);
