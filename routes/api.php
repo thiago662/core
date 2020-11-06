@@ -87,7 +87,13 @@ Route::prefix('v1')->group(function () {
         // middleware = ;
         Route::name('dashboard.')->group(function () {
 
-            Route::get('dashboard/graphic', [DashboardController::class, 'graphic']);
+            Route::get('dashboard/graphic/lead', [DashboardController::class, 'graphicLead']);
+
+            Route::get('dashboard/graphic/open', [DashboardController::class, 'graphicOpen']);
+
+            Route::get('dashboard/graphic/close', [DashboardController::class, 'graphicClose']);
+
+            Route::get('dashboard/graphic/sale', [DashboardController::class, 'graphicSale']);
 
             Route::get('dashboard/ranking', [DashboardController::class, 'ranking']);
 

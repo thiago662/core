@@ -15,7 +15,7 @@ class DashboardController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('administrator')->only(['leadsTotal', 'leadsOpen', 'leadsFinished']);
+        $this->middleware('administrator')->only([]);
     }
 
     public function leadsTotal()
@@ -104,7 +104,7 @@ class DashboardController extends Controller
         }
     }
 
-    public function graphic()
+    public function graphicLead()
     {
         $teste = Lead::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
             ->groupBy('date')
