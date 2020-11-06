@@ -26,9 +26,9 @@ class LeadController extends Controller
         $user_type = auth('api')->user()->type;
 
         if ($user_type == "administrador") {
-            $leads = $this->lead->with('user')->where('enterprise_id', $enterprise_id)->orderBy('id')->get();
+            $leads = $this->lead->with('user')->where('enterprise_id', $enterprise_id)->orderBy('status')->get();
         } else {
-            $leads = $this->lead->with('user')->where('enterprise_id', $enterprise_id)->where('user_id', $user_id)->orderBy('id')->get();
+            $leads = $this->lead->with('user')->where('enterprise_id', $enterprise_id)->where('user_id', $user_id)->orderBy('status')->get();
         }
 
         // $leads = $this->lead->with('user')->where('enterprise_id', $enterprise_id)->orderBy('id')->get();

@@ -37,6 +37,7 @@ class FollowUpController extends Controller
 
             if (isset($data['type']) && $data['type'] == "anotado") {
                 unset($data['created_at']);
+                unset($data['value']);
                 $this->followUp->create($data);
 
                 $lead = Lead::find($data['lead_id']);
@@ -56,6 +57,7 @@ class FollowUpController extends Controller
                 $lead->save();
             } else if (isset($data['type']) && $data['type'] == "n_vendido") {
                 unset($data['created_at']);
+                unset($data['value']);
                 $this->followUp->create($data);
 
                 $lead = Lead::find($data['lead_id']);
