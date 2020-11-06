@@ -21,7 +21,13 @@ class DashboardController extends Controller
     public function leadsTotal()
     {
         try {
-            $leads = count(Lead::all());
+            $user = auth('api')->user();
+
+            if ($user->type == 'atendente') {
+                $leads = count(Lead::where('user_id', $user->id)->get());
+            } else if ($user->type == 'administrador') {
+                $leads = count(Lead::all());
+            }
 
             return response()->json($leads, 200);
         } catch (\Exception $e) {
@@ -34,7 +40,13 @@ class DashboardController extends Controller
     public function leadsOpen()
     {
         try {
-            $leads = count(Lead::where("status", "0")->get());
+            $user = auth('api')->user();
+
+            if ($user->type == 'atendente') {
+                $leads = count(Lead::where('user_id', $user->id)->where('status', '0')->get());
+            } else if ($user->type == 'administrador') {
+                $leads = count(Lead::where('status', '0')->get());
+            }
 
             return response()->json($leads, 200);
         } catch (\Exception $e) {
@@ -47,7 +59,13 @@ class DashboardController extends Controller
     public function leadsFinished()
     {
         try {
-            $leads = count(Lead::where("status", "2")->get());
+            $user = auth('api')->user();
+
+            if ($user->type == 'atendente') {
+                $leads = count(Lead::where('user_id', $user->id)->where('status', '2')->get());
+            } else if ($user->type == 'administrador') {
+                $leads = count(Lead::where('status', '2')->get());
+            }
 
             return response()->json($leads, 200);
         } catch (\Exception $e) {
@@ -60,12 +78,24 @@ class DashboardController extends Controller
     public function leadsSales()
     {
         try {
-            $leads = count(
-                Lead::join('follow_ups','leads.id','=','follow_ups.lead_id')
-                    ->where('follow_ups.type', 'vendido')
-                    ->where('leads.status', 2)
-                    ->get()
-            );
+            $user = auth('api')->user();
+
+            if ($user->type == 'atendente') {
+                $leads = count(
+                    Lead::join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
+                        ->where('leads.user_id', $user->id)
+                        ->where('follow_ups.type', 'vendido')
+                        ->where('leads.status', 2)
+                        ->get()
+                );
+            } else if ($user->type == 'administrador') {
+                $leads = count(
+                    Lead::join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
+                        ->where('follow_ups.type', 'vendido')
+                        ->where('leads.status', 2)
+                        ->get()
+                );
+            }
 
             return response()->json($leads, 200);
         } catch (\Exception $e) {
@@ -79,19 +109,19 @@ class DashboardController extends Controller
     {
         try {
             $teste = array();
-            $users = User::where("type", "!=", "administrador")->get();
+            $users = User::where('type', '!=', 'administrador')->get();
 
             foreach ($users as $user) {
-                $leads = Lead::where("user_id", $user->id)->get()->count();
+                $leads = Lead::where('user_id', $user->id)->get()->count();
 
                 $sales = count(
-                    Lead::join('follow_ups','leads.id','=','follow_ups.lead_id')
+                    Lead::join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
                         ->where('leads.user_id', $user->id)
                         ->where('follow_ups.type', 'vendido')
                         ->get()
                 );
 
-                array_push($teste, array("id" => $user->id, "user" => $user->name, "leads" => $leads, "sales" => $sales));
+                array_push($teste, array('id' => $user->id, 'user' => $user->name, 'leads' => $leads, 'sales' => $sales));
             }
             $teste1 = array_column($teste, 'sales');
             array_multisort($teste1, SORT_DESC, $teste);
@@ -106,66 +136,90 @@ class DashboardController extends Controller
 
     public function graphicLead()
     {
-        $teste = Lead::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
-            ->groupBy('date')
-            ->get();
+        try {
+            $teste = Lead::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
+                ->groupBy('date')
+                ->get();
 
-        $teste1 = [];
+            $teste1 = [];
 
-        foreach($teste as $value){
-            array_push($teste1, [strtotime($value['date']) * 1000,$value['leads']]);
+            foreach ($teste as $value) {
+                array_push($teste1, [strtotime($value['date']) * 1000, $value['leads']]);
+            }
+
+            return response()->json($teste1, 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
         }
-
-        return response()->json($teste1, 200);
     }
 
     public function graphicOpen()
     {
-        $teste = Lead::where('status','0')
-            ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
-            ->groupBy('date')
-            ->get();
+        try {
+            $teste = Lead::where('status', '0')
+                ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
+                ->groupBy('date')
+                ->get();
 
-        $teste1 = [];
+            $teste1 = [];
 
-        foreach($teste as $value){
-            array_push($teste1, [strtotime($value['date']) * 1000,$value['leads']]);
+            foreach ($teste as $value) {
+                array_push($teste1, [strtotime($value['date']) * 1000, $value['leads']]);
+            }
+
+            return response()->json($teste1, 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
         }
-
-        return response()->json($teste1, 200);
     }
 
     public function graphicClose()
     {
-        $teste = Lead::where('status','2')
-            ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
-            ->groupBy('date')
-            ->get();
+        try {
+            $teste = Lead::where('status', '2')
+                ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
+                ->groupBy('date')
+                ->get();
 
-        $teste1 = [];
+            $teste1 = [];
 
-        foreach($teste as $value){
-            array_push($teste1, [strtotime($value['date']) * 1000,$value['leads']]);
+            foreach ($teste as $value) {
+                array_push($teste1, [strtotime($value['date']) * 1000, $value['leads']]);
+            }
+
+            return response()->json($teste1, 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
         }
-
-        return response()->json($teste1, 200);
     }
 
     public function graphicSale()
     {
-        $teste = Lead::join('follow_ups','leads.id','=','follow_ups.lead_id')
-            ->where('follow_ups.type', 'vendido')
-            ->where('leads.status', 2)
-            ->select(DB::raw('DATE(follow_ups.created_at) as date'), DB::raw('count(*) as leads'))
-            ->groupBy('date')
-            ->get();
+        try {
+            $teste = Lead::join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
+                ->where('follow_ups.type', 'vendido')
+                ->where('leads.status', 2)
+                ->select(DB::raw('DATE(follow_ups.created_at) as date'), DB::raw('count(*) as leads'))
+                ->groupBy('date')
+                ->get();
 
-        $teste1 = [];
+            $teste1 = [];
 
-        foreach($teste as $value){
-            array_push($teste1, [strtotime($value['date']) * 1000,$value['leads']]);
+            foreach ($teste as $value) {
+                array_push($teste1, [strtotime($value['date']) * 1000, $value['leads']]);
+            }
+
+            return response()->json($teste1, 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
         }
-
-        return response()->json($teste1, 200);
     }
 }

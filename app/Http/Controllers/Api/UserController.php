@@ -22,23 +22,29 @@ class UserController extends Controller
 
     public function index()
     {
-        $enterprise_id = auth('api')->user()->enterprise_id;
-        $users = $this->user->where('enterprise_id', $enterprise_id)->orderBy('id')->get();
+        try {
+            $enterprise_id = auth('api')->user()->enterprise_id;
+            $users = $this->user->where('enterprise_id', $enterprise_id)->orderBy('id')->get();
 
-        return response()->json($users, 200);
+            return response()->json($users, 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
+        }
     }
 
     public function store(UserRequest $request)
     {
-        $data = $request->all();
-
-        if (!$request->has('password') || !$request->get('password')) {
-            $message = new ApiMessages('You need to have a password');
-
-            return response()->json($message->getMessage(), 401);
-        }
-
         try {
+            $data = $request->all();
+
+            if (!$request->has('password') || !$request->get('password')) {
+                $message = new ApiMessages('You need to have a password');
+
+                return response()->json($message->getMessage(), 401);
+            }
+
             $data['password'] = bcrypt($data['password']);
             $enterprise_id = auth('api')->user()->enterprise_id;
             $data['enterprise_id'] = $enterprise_id;
@@ -72,21 +78,21 @@ class UserController extends Controller
 
     public function update(Request $request, $id)
     {
-        $data = $request->all();
-
-        Validator::make($data, [
-            'name' => 'required',
-            'email' => 'required|email|unique:users,email,' . $id . ',id',
-            'type' => 'required'
-        ])->validate();
-
-        if ($request->has('password') && $request->get('password')) {
-            $data['password'] = bcrypt($data['password']);
-        } else {
-            unset($data['password']);
-        }
-
         try {
+            $data = $request->all();
+
+            Validator::make($data, [
+                'name' => 'required',
+                'email' => 'required|email|unique:users,email,' . $id . ',id',
+                'type' => 'required'
+            ])->validate();
+
+            if ($request->has('password') && $request->get('password')) {
+                $data['password'] = bcrypt($data['password']);
+            } else {
+                unset($data['password']);
+            }
+
             $this->user
                 ->findOrFail($id)
                 ->update($data);
@@ -156,9 +162,15 @@ class UserController extends Controller
 
     public function clerks()
     {
-        $user = auth('api')->user();
-        $users = $this->user->where('enterprise_id', $user->enterprise_id)->where('id', '!=', $user->id)->orderBy('id')->get();
+        try {
+            $user = auth('api')->user();
+            $users = $this->user->where('enterprise_id', $user->enterprise_id)->where('id', '!=', $user->id)->orderBy('id')->get();
 
-        return response()->json($users, 200);
+            return response()->json($users, 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
+        }
     }
 }

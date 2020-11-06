@@ -20,26 +20,32 @@ class EnterpriseController extends Controller
 
     public function index()
     {
-        $user = auth('api')->user();
-        $enterprise = $this->enterprise->findOrFail($user->enterprise_id);
+        try {
+            $user = auth('api')->user();
+            $enterprise = $this->enterprise->findOrFail($user->enterprise_id);
 
-        return response()->json([
-            'enterprise' => $enterprise,
-            'user' => $user
-        ], 200);
+            return response()->json([
+                'enterprise' => $enterprise,
+                'user' => $user
+            ], 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
+        }
     }
 
     public function store(Request $request)
     {
-        $data = $request->all();
-
-        if (!$request->has('password') || !$request->get('password')) {
-            $message = new ApiMessages('You need to have a password');
-
-            return response()->json($message->getMessage(), 401);
-        }
-
         try {
+            $data = $request->all();
+
+            if (!$request->has('password') || !$request->get('password')) {
+                $message = new ApiMessages('You need to have a password');
+
+                return response()->json($message->getMessage(), 401);
+            }
+
             $this->enterprise
                 ->create($data)
                 ->user()
@@ -75,9 +81,9 @@ class EnterpriseController extends Controller
 
     public function update(Request $request, $id)
     {
-        $data = $request->all();
-
         try {
+            $data = $request->all();
+
             $this->enterprise
                 ->findOrFail($id)
                 ->update($data);

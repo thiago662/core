@@ -41,20 +41,38 @@ class LeadController extends Controller
         $data = $request->all();
 
         try {
-            $enterprise_id = auth('api')->user()->enterprise_id;
-            $data['enterprise_id'] = $enterprise_id;
-            $data['status'] = "0";
-            $data['type'] = "criado";
+            $user = auth('api')->user();
 
-            $this->lead
-                ->create($data)
-                ->followUp()
-                ->create(
-                    [
-                        'type' => $data['type'],
-                        'message' => "lead criado"
-                    ]
-                );
+            if ($user->type == "atendente") {
+                $data['enterprise_id'] = $user->enterprise_id;
+                $data['status'] = "0";
+                $data['type'] = "criado";
+                $data['user_id'] = $user->id;
+    
+                $this->lead
+                    ->create($data)
+                    ->followUp()
+                    ->create(
+                        [
+                            'type' => $data['type'],
+                            'message' => "lead criado"
+                        ]
+                    );
+            } else if ($user->type == "administrador") {
+                $data['enterprise_id'] = $user->enterprise_id;
+                $data['status'] = "0";
+                $data['type'] = "criado";
+    
+                $this->lead
+                    ->create($data)
+                    ->followUp()
+                    ->create(
+                        [
+                            'type' => $data['type'],
+                            'message' => "lead criado"
+                        ]
+                    );
+            }
 
             return response()->json([
                 'data' => [

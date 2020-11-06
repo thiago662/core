@@ -19,16 +19,22 @@ class FollowUpController extends Controller
 
     public function index()
     {
-        $followUps = $this->followUp->all();
+        try {
+            $followUps = $this->followUp->all();
 
-        return response()->json($followUps, 200);
+            return response()->json($followUps, 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
+        }
     }
 
     public function store(Request $request)
     {
-        $data = $request->all();
-
         try {
+            $data = $request->all();
+
             if (isset($data['type']) && $data['type'] == "anotado") {
                 unset($data['created_at']);
                 $this->followUp->create($data);
@@ -39,7 +45,7 @@ class FollowUpController extends Controller
                 }
                 $lead->save();
             } else if (isset($data['type']) && $data['type'] == "vendido") {
-                if($data['created_at'] == ""){
+                if ($data['created_at'] == "") {
                     unset($data['created_at']);
                 }
                 $data['message'] = "lead vendido";
@@ -72,7 +78,7 @@ class FollowUpController extends Controller
     public function show($id)
     {
         try {
-            $followUp = $this->followUp->where('lead_id', $id)->orderBy('id','DESC')->get();
+            $followUp = $this->followUp->where('lead_id', $id)->orderBy('id', 'DESC')->get();
 
             return response()->json($followUp, 200);
         } catch (\Exception $e) {
@@ -84,9 +90,9 @@ class FollowUpController extends Controller
 
     public function update(Request $request, $id)
     {
-        $data = $request->all();
-
         try {
+            $data = $request->all();
+
             $this->followUp
                 ->findOrFail($id)
                 ->update($data);
@@ -117,7 +123,7 @@ class FollowUpController extends Controller
             ], 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
-            
+
             return response()->json($message->getMessage(), 401);
         }
     }
