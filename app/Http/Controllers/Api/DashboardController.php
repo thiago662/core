@@ -18,15 +18,34 @@ class DashboardController extends Controller
         $this->middleware('administrator')->only([]);
     }
 
-    public function leadsTotal()
+    public function leadsTotal(Request $request, Lead $teste)
     {
         try {
             $user = auth('api')->user();
+            $data = $request;
+            $leads = $teste;
+
+            if (isset($data['user_id']) && $data['user_id'] != '') {
+                $leads = $leads->where('user_id', $data['user_id']);
+            }
+
+            if (isset($data['year']) && $data['year'] != '') {
+                $leads = $leads->whereYear('created_at', $data['year']);
+            }
+
+            if (isset($data['mouth']) && $data['mouth'] != '') {
+                $leads = $leads->whereMonth('created_at', $data['mouth']);
+            }
+
+            if (isset($data['source']) && $data['source'] != '') {
+                $teste = "%" . $data['source'] . "%";
+                $leads = $leads->where('source', 'LIKE', $teste);
+            }
 
             if ($user->type == 'atendente') {
-                $leads = count(Lead::where('user_id', $user->id)->get());
+                $leads = count($leads->where('user_id', $user->id)->get());
             } else if ($user->type == 'administrador') {
-                $leads = count(Lead::all());
+                $leads = count($leads->get());
             }
 
             return response()->json($leads, 200);
@@ -37,15 +56,34 @@ class DashboardController extends Controller
         }
     }
 
-    public function leadsOpen()
+    public function leadsOpen(Request $request, Lead $teste)
     {
         try {
             $user = auth('api')->user();
+            $data = $request;
+            $leads = $teste;
+
+            if (isset($data['user_id']) && $data['user_id'] != '') {
+                $leads = $leads->where('user_id', $data['user_id']);
+            }
+
+            if (isset($data['year']) && $data['year'] != '') {
+                $leads = $leads->whereYear('created_at', $data['year']);
+            }
+
+            if (isset($data['mouth']) && $data['mouth'] != '') {
+                $leads = $leads->whereMonth('created_at', $data['mouth']);
+            }
+
+            if (isset($data['source']) && $data['source'] != '') {
+                $teste = "%" . $data['source'] . "%";
+                $leads = $leads->where('source', 'LIKE', $teste);
+            }
 
             if ($user->type == 'atendente') {
-                $leads = count(Lead::where('user_id', $user->id)->where('status', '0')->get());
+                $leads = count($leads->where('user_id', $user->id)->where('status', '0')->get());
             } else if ($user->type == 'administrador') {
-                $leads = count(Lead::where('status', '0')->get());
+                $leads = count($leads->where('status', '0')->get());
             }
 
             return response()->json($leads, 200);
@@ -56,18 +94,48 @@ class DashboardController extends Controller
         }
     }
 
-    public function leadsFinished()
+    public function leadsClose(Request $request, Lead $teste)
     {
         try {
             $user = auth('api')->user();
+            $data = $request;
+            $leads = $teste;
 
+            // teste
             if ($user->type == 'atendente') {
-                $leads = count(Lead::where('user_id', $user->id)->where('status', '2')->get());
+                $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
+                    ->whereIn('follow_ups.type', ['vendido', 'n_vendido'])
+                    ->where('leads.status', '2');
             } else if ($user->type == 'administrador') {
-                $leads = count(Lead::where('status', '2')->get());
+                $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
+                    ->whereIn('follow_ups.type', ['vendido', 'n_vendido'])
+                    ->where('leads.status', '2');
             }
 
-            return response()->json($leads, 200);
+            if (isset($data['user_id']) && $data['user_id'] != '') {
+                $leads = $leads->where('leads.user_id', $data['user_id']);
+            }
+
+            if (isset($data['year']) && $data['year'] != '') {
+                $leads = $leads->whereYear('leads.created_at', $data['year']);
+            }
+
+            if (isset($data['mouth']) && $data['mouth'] != '') {
+                $leads = $leads->whereMonth('leads.created_at', $data['mouth']);
+            }
+
+            if (isset($data['source']) && $data['source'] != '') {
+                $teste = "%" . $data['source'] . "%";
+                $leads = $leads->where('leads.source', 'LIKE', $teste);
+            }
+
+            // if ($user->type == 'atendente') {
+            //     $leads = count($leads->where('user_id', $user->id)->where('status', '2')->get());
+            // } else if ($user->type == 'administrador') {
+            //     $leads = count($leads->where('status', '2')->get());
+            // }
+
+            return response()->json(count($leads->get()), 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -75,29 +143,42 @@ class DashboardController extends Controller
         }
     }
 
-    public function leadsSales()
+    public function leadsSales(Request $request, Lead $teste)
     {
         try {
             $user = auth('api')->user();
+            $data = $request;
+            $leads = $teste;
 
             if ($user->type == 'atendente') {
-                $leads = count(
-                    Lead::join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
-                        ->where('leads.user_id', $user->id)
-                        ->where('follow_ups.type', 'vendido')
-                        ->where('leads.status', 2)
-                        ->get()
-                );
+                $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
+                    ->where('leads.user_id', $user->id)
+                    ->where('follow_ups.type', 'vendido')
+                    ->where('leads.status', '2');
             } else if ($user->type == 'administrador') {
-                $leads = count(
-                    Lead::join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
-                        ->where('follow_ups.type', 'vendido')
-                        ->where('leads.status', 2)
-                        ->get()
-                );
+                $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
+                    ->where('follow_ups.type', 'vendido')
+                    ->where('leads.status', '2');
             }
 
-            return response()->json($leads, 200);
+            if (isset($data['user_id']) && $data['user_id'] != '') {
+                $leads = $leads->where('leads.user_id', $data['user_id']);
+            }
+
+            if (isset($data['year']) && $data['year'] != '') {
+                $leads = $leads->whereYear('leads.created_at', $data['year']);
+            }
+
+            if (isset($data['mouth']) && $data['mouth'] != '') {
+                $leads = $leads->whereMonth('leads.created_at', $data['mouth']);
+            }
+
+            if (isset($data['source']) && $data['source'] != '') {
+                $teste = "%" . $data['source'] . "%";
+                $leads = $leads->where('leads.source', 'LIKE', $teste);
+            }
+
+            return response()->json(count($leads->get()), 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -108,7 +189,7 @@ class DashboardController extends Controller
     public function ranking()
     {
         try {
-            $teste = array();
+            $rank = array();
             $users = User::where('type', '!=', 'administrador')->get();
 
             foreach ($users as $user) {
@@ -121,12 +202,12 @@ class DashboardController extends Controller
                         ->get()
                 );
 
-                array_push($teste, array('id' => $user->id, 'user' => $user->name, 'leads' => $leads, 'sales' => $sales));
+                array_push($rank, array('id' => $user->id, 'user' => $user->name, 'leads' => $leads, 'sales' => $sales));
             }
-            $teste1 = array_column($teste, 'sales');
-            array_multisort($teste1, SORT_DESC, $teste);
+            $help = array_column($rank, 'sales');
+            array_multisort($help, SORT_DESC, $rank);
 
-            return response()->json($teste, 200);
+            return response()->json($rank, 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -137,17 +218,17 @@ class DashboardController extends Controller
     public function graphicLead()
     {
         try {
-            $teste = Lead::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
+            $data = Lead::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
                 ->groupBy('date')
                 ->get();
 
-            $teste1 = [];
+            $graphic = [];
 
-            foreach ($teste as $value) {
-                array_push($teste1, [strtotime($value['date']) * 1000, $value['leads']]);
+            foreach ($data as $value) {
+                array_push($graphic, [strtotime($value['date']) * 1000, $value['leads']]);
             }
 
-            return response()->json($teste1, 200);
+            return response()->json($graphic, 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -158,18 +239,18 @@ class DashboardController extends Controller
     public function graphicOpen()
     {
         try {
-            $teste = Lead::where('status', '0')
+            $data = Lead::where('status', '0')
                 ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
                 ->groupBy('date')
                 ->get();
 
-            $teste1 = [];
+            $graphic = [];
 
-            foreach ($teste as $value) {
-                array_push($teste1, [strtotime($value['date']) * 1000, $value['leads']]);
+            foreach ($data as $value) {
+                array_push($graphic, [strtotime($value['date']) * 1000, $value['leads']]);
             }
 
-            return response()->json($teste1, 200);
+            return response()->json($graphic, 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -180,18 +261,25 @@ class DashboardController extends Controller
     public function graphicClose()
     {
         try {
-            $teste = Lead::where('status', '2')
+            /* $data = Lead::where('status', '2')
                 ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
+                ->groupBy('date')
+                ->get(); */
+
+            $data = Lead::join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
+                ->whereIn('follow_ups.type', ['vendido', 'n_vendido'])
+                ->where('leads.status', '2')
+                ->select(DB::raw('DATE(follow_ups.created_at) as date'), DB::raw('count(*) as leads'))
                 ->groupBy('date')
                 ->get();
 
-            $teste1 = [];
+            $graphic = [];
 
-            foreach ($teste as $value) {
-                array_push($teste1, [strtotime($value['date']) * 1000, $value['leads']]);
+            foreach ($data as $value) {
+                array_push($graphic, [strtotime($value['date']) * 1000, $value['leads']]);
             }
 
-            return response()->json($teste1, 200);
+            return response()->json($graphic, 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -202,20 +290,20 @@ class DashboardController extends Controller
     public function graphicSale()
     {
         try {
-            $teste = Lead::join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
+            $data = Lead::join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
                 ->where('follow_ups.type', 'vendido')
-                ->where('leads.status', 2)
+                ->where('leads.status', '2')
                 ->select(DB::raw('DATE(follow_ups.created_at) as date'), DB::raw('count(*) as leads'))
                 ->groupBy('date')
                 ->get();
 
-            $teste1 = [];
+            $graphic = [];
 
-            foreach ($teste as $value) {
-                array_push($teste1, [strtotime($value['date']) * 1000, $value['leads']]);
+            foreach ($data as $value) {
+                array_push($graphic, [strtotime($value['date']) * 1000, $value['leads']]);
             }
 
-            return response()->json($teste1, 200);
+            return response()->json($graphic, 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 

@@ -25,8 +25,10 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// prefixo de versionamento da api
 Route::prefix('v1')->group(function () {
-            
+    
+    // rotas para interações iniciais
     Route::post('signup', [AuthController::class, 'signup'])->name('signup');
 
     Route::post('login', [AuthController::class, 'login'])->name('login');
@@ -97,13 +99,13 @@ Route::prefix('v1')->group(function () {
 
             Route::get('dashboard/ranking', [DashboardController::class, 'ranking']);
 
-            Route::get('dashboard/total', [DashboardController::class, 'leadsTotal']);
+            Route::post('dashboard/total', [DashboardController::class, 'leadsTotal']);
 
-            Route::get('dashboard/open', [DashboardController::class, 'leadsOpen']);
+            Route::post('dashboard/open', [DashboardController::class, 'leadsOpen']);
 
-            Route::get('dashboard/finished', [DashboardController::class, 'leadsFinished']);
+            Route::post('dashboard/close', [DashboardController::class, 'leadsClose']);
 
-            Route::get('dashboard/sales', [DashboardController::class, 'leadsSales']);
+            Route::post('dashboard/sales', [DashboardController::class, 'leadsSales']);
     
         });
 
