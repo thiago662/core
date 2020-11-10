@@ -31,7 +31,6 @@ class LeadController extends Controller
             $leads = $this->lead->with('user')->where('enterprise_id', $enterprise_id)->where('user_id', $user_id)->orderBy('status')->get();
         }
 
-        // $leads = $this->lead->with('user')->where('enterprise_id', $enterprise_id)->orderBy('id')->get();
 
         return response()->json($leads, 200);
     }

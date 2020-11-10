@@ -18,6 +18,7 @@ class DashboardController extends Controller
         $this->middleware('administrator')->only([]);
     }
 
+    // retorna a quantidade de leads total
     public function leadsTotal(Request $request, Lead $teste)
     {
         try {
@@ -56,6 +57,7 @@ class DashboardController extends Controller
         }
     }
 
+    // retorna todos so leads
     public function leadsOpen(Request $request, Lead $teste)
     {
         try {
@@ -94,6 +96,7 @@ class DashboardController extends Controller
         }
     }
 
+    // retorna todos so leads
     public function leadsClose(Request $request, Lead $teste)
     {
         try {
@@ -105,7 +108,8 @@ class DashboardController extends Controller
             if ($user->type == 'atendente') {
                 $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
                     ->whereIn('follow_ups.type', ['vendido', 'n_vendido'])
-                    ->where('leads.status', '2');
+                    ->where('leads.status', '2')
+                    ->where('leads.user_id', $user->id);
             } else if ($user->type == 'administrador') {
                 $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
                     ->whereIn('follow_ups.type', ['vendido', 'n_vendido'])
@@ -129,12 +133,6 @@ class DashboardController extends Controller
                 $leads = $leads->where('leads.source', 'LIKE', $teste);
             }
 
-            // if ($user->type == 'atendente') {
-            //     $leads = count($leads->where('user_id', $user->id)->where('status', '2')->get());
-            // } else if ($user->type == 'administrador') {
-            //     $leads = count($leads->where('status', '2')->get());
-            // }
-
             return response()->json(count($leads->get()), 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
@@ -143,6 +141,7 @@ class DashboardController extends Controller
         }
     }
 
+    // retorna todos so leads
     public function leadsSales(Request $request, Lead $teste)
     {
         try {
@@ -186,6 +185,7 @@ class DashboardController extends Controller
         }
     }
 
+    // retorna os ranking com o desempenho dos atendentes
     public function ranking()
     {
         try {
@@ -215,16 +215,37 @@ class DashboardController extends Controller
         }
     }
 
-    public function graphicLead()
+    // retorna todos so leads
+    public function graphicLead(Request $request, Lead $teste)
     {
         try {
-            $data = Lead::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
+            $data = $request;
+            $leads = $teste;
+
+            if (isset($data['user_id']) && $data['user_id'] != '') {
+                $leads = $leads->where('leads.user_id', $data['user_id']);
+            }
+
+            if (isset($data['year']) && $data['year'] != '') {
+                $leads = $leads->whereYear('leads.created_at', $data['year']);
+            }
+
+            if (isset($data['month']) && $data['month'] != '') {
+                $leads = $leads->whereMonth('leads.created_at', $data['month']);
+            }
+
+            if (isset($data['source']) && $data['source'] != '') {
+                $teste = "%" . $data['source'] . "%";
+                $leads = $leads->where('leads.source', 'LIKE', $teste);
+            }
+
+            $leads = $leads->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
                 ->groupBy('date')
                 ->get();
 
             $graphic = [];
 
-            foreach ($data as $value) {
+            foreach ($leads as $value) {
                 array_push($graphic, [strtotime($value['date']) * 1000, $value['leads']]);
             }
 
@@ -236,6 +257,7 @@ class DashboardController extends Controller
         }
     }
 
+    // retorna todos so leads
     public function graphicOpen()
     {
         try {
@@ -258,6 +280,7 @@ class DashboardController extends Controller
         }
     }
 
+    // retorna todos so leads
     public function graphicClose()
     {
         try {
@@ -287,6 +310,7 @@ class DashboardController extends Controller
         }
     }
 
+    // retorna todos so leads
     public function graphicSale()
     {
         try {
