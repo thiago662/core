@@ -216,11 +216,11 @@ class DashboardController extends Controller
     }
 
     // retorna todos so leads
-    public function graphicLead(Request $request, Lead $teste)
+    public function graphicLead(Request $request, Lead $lead)
     {
         try {
             $data = $request;
-            $leads = $teste;
+            $leads = $lead;
 
             if (isset($data['user_id']) && $data['user_id'] != '') {
                 $leads = $leads->where('leads.user_id', $data['user_id']);
@@ -258,17 +258,37 @@ class DashboardController extends Controller
     }
 
     // retorna todos so leads
-    public function graphicOpen()
+    public function graphicOpen(Request $request, Lead $lead)
     {
         try {
-            $data = Lead::where('status', '0')
+            $data = $request;
+            $leads = $lead;
+
+            if (isset($data['user_id']) && $data['user_id'] != '') {
+                $leads = $leads->where('leads.user_id', $data['user_id']);
+            }
+
+            if (isset($data['year']) && $data['year'] != '') {
+                $leads = $leads->whereYear('leads.created_at', $data['year']);
+            }
+
+            if (isset($data['month']) && $data['month'] != '') {
+                $leads = $leads->whereMonth('leads.created_at', $data['month']);
+            }
+
+            if (isset($data['source']) && $data['source'] != '') {
+                $teste = "%" . $data['source'] . "%";
+                $leads = $leads->where('leads.source', 'LIKE', $teste);
+            }
+
+            $leads = $leads->where('status', '0')
                 ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
                 ->groupBy('date')
                 ->get();
 
             $graphic = [];
 
-            foreach ($data as $value) {
+            foreach ($leads as $value) {
                 array_push($graphic, [strtotime($value['date']) * 1000, $value['leads']]);
             }
 
@@ -281,15 +301,30 @@ class DashboardController extends Controller
     }
 
     // retorna todos so leads
-    public function graphicClose()
+    public function graphicClose(Request $request, Lead $lead)
     {
         try {
-            /* $data = Lead::where('status', '2')
-                ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
-                ->groupBy('date')
-                ->get(); */
+            $data = $request;
+            $leads = $lead;
 
-            $data = Lead::join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
+            if (isset($data['user_id']) && $data['user_id'] != '') {
+                $leads = $leads->where('leads.user_id', $data['user_id']);
+            }
+
+            if (isset($data['year']) && $data['year'] != '') {
+                $leads = $leads->whereYear('leads.created_at', $data['year']);
+            }
+
+            if (isset($data['month']) && $data['month'] != '') {
+                $leads = $leads->whereMonth('leads.created_at', $data['month']);
+            }
+
+            if (isset($data['source']) && $data['source'] != '') {
+                $teste = "%" . $data['source'] . "%";
+                $leads = $leads->where('leads.source', 'LIKE', $teste);
+            }
+
+            $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
                 ->whereIn('follow_ups.type', ['vendido', 'n_vendido'])
                 ->where('leads.status', '2')
                 ->select(DB::raw('DATE(follow_ups.created_at) as date'), DB::raw('count(*) as leads'))
@@ -298,7 +333,7 @@ class DashboardController extends Controller
 
             $graphic = [];
 
-            foreach ($data as $value) {
+            foreach ($leads as $value) {
                 array_push($graphic, [strtotime($value['date']) * 1000, $value['leads']]);
             }
 
@@ -311,10 +346,29 @@ class DashboardController extends Controller
     }
 
     // retorna todos so leads
-    public function graphicSale()
+    public function graphicSale(Request $request, Lead $lead)
     {
         try {
-            $data = Lead::join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
+            $data = $request;
+            $leads = $lead;
+
+            if (isset($data['user_id']) && $data['user_id'] != '') {
+                $leads = $leads->where('leads.user_id', $data['user_id']);
+            }
+
+            if (isset($data['year']) && $data['year'] != '') {
+                $leads = $leads->whereYear('leads.created_at', $data['year']);
+            }
+
+            if (isset($data['month']) && $data['month'] != '') {
+                $leads = $leads->whereMonth('leads.created_at', $data['month']);
+            }
+
+            if (isset($data['source']) && $data['source'] != '') {
+                $teste = "%" . $data['source'] . "%";
+                $leads = $leads->where('leads.source', 'LIKE', $teste);
+            }
+            $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
                 ->where('follow_ups.type', 'vendido')
                 ->where('leads.status', '2')
                 ->select(DB::raw('DATE(follow_ups.created_at) as date'), DB::raw('count(*) as leads'))
@@ -323,7 +377,7 @@ class DashboardController extends Controller
 
             $graphic = [];
 
-            foreach ($data as $value) {
+            foreach ($leads as $value) {
                 array_push($graphic, [strtotime($value['date']) * 1000, $value['leads']]);
             }
 

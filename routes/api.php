@@ -71,7 +71,7 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('leads', LeadController::class);
 
             // Filtro
-            Route::post('leads/filter', [LeadController::class, 'filter']);
+            Route::post('leads/filter', [LeadController::class, 'filter'])->name('leads.filter');
     
         });
     
@@ -89,23 +89,23 @@ Route::prefix('v1')->group(function () {
         // middleware = ;
         Route::name('dashboard.')->group(function () {
 
-            Route::post('dashboard/graphic/lead', [DashboardController::class, 'graphicLead']);
+            Route::post('dashboard/graphic/lead', [DashboardController::class, 'graphicLead'])->name('dashboard.graphic.lead');
 
-            Route::get('dashboard/graphic/open', [DashboardController::class, 'graphicOpen']);
+            Route::post('dashboard/graphic/open', [DashboardController::class, 'graphicOpen'])->name('dashboard.graphic.open');
 
-            Route::get('dashboard/graphic/close', [DashboardController::class, 'graphicClose']);
+            Route::post('dashboard/graphic/close', [DashboardController::class, 'graphicClose'])->name('dashboard.graphic.close');
 
-            Route::get('dashboard/graphic/sale', [DashboardController::class, 'graphicSale']);
+            Route::post('dashboard/graphic/sale', [DashboardController::class, 'graphicSale'])->name('dashboard.graphic.sale');
 
-            Route::get('dashboard/ranking', [DashboardController::class, 'ranking']);
+            Route::get('dashboard/ranking', [DashboardController::class, 'ranking'])->name('dashboard.ranking');
 
-            Route::post('dashboard/total', [DashboardController::class, 'leadsTotal']);
+            Route::post('dashboard/total', [DashboardController::class, 'leadsTotal'])->name('dashboard.total');
 
-            Route::post('dashboard/open', [DashboardController::class, 'leadsOpen']);
+            Route::post('dashboard/open', [DashboardController::class, 'leadsOpen'])->name('dashboard.open');
 
-            Route::post('dashboard/close', [DashboardController::class, 'leadsClose']);
+            Route::post('dashboard/close', [DashboardController::class, 'leadsClose'])->name('dashboard.close');
 
-            Route::post('dashboard/sales', [DashboardController::class, 'leadsSales']);
+            Route::post('dashboard/sales', [DashboardController::class, 'leadsSales'])->name('dashboard.sales');
     
         });
 
