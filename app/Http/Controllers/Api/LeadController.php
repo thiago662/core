@@ -37,9 +37,12 @@ class LeadController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->all();
-
         try {
+            $request['name'] = mb_strtolower($request['name'], 'UTF-8');
+            $request['source'] = mb_strtolower($request['source'], 'UTF-8');
+            $request['contact'] = mb_strtolower($request['contact'], 'UTF-8');
+            $data = $request->all();
+
             $user = auth('api')->user();
 
             if ($user->type == "atendente") {
@@ -47,7 +50,7 @@ class LeadController extends Controller
                 $data['status'] = "0";
                 $data['type'] = "criado";
                 $data['user_id'] = $user->id;
-    
+
                 $this->lead
                     ->create($data)
                     ->followUp()
@@ -61,7 +64,7 @@ class LeadController extends Controller
                 $data['enterprise_id'] = $user->enterprise_id;
                 $data['status'] = "0";
                 $data['type'] = "criado";
-    
+
                 $this->lead
                     ->create($data)
                     ->followUp()
@@ -101,9 +104,12 @@ class LeadController extends Controller
 
     public function update(Request $request, $id)
     {
-        $data = $request->all();
-
         try {
+            $request['name'] = mb_strtolower($request['name'], 'UTF-8');
+            $request['source'] = mb_strtolower($request['source'], 'UTF-8');
+            $request['contact'] = mb_strtolower($request['contact'], 'UTF-8');
+            $data = $request->all();
+
             $this->lead
                 ->findOrFail($id)
                 ->update($data);
@@ -143,7 +149,10 @@ class LeadController extends Controller
     public function filter(Request $request)
     {
         try {
-            $data = $request;
+            $request['name'] = mb_strtolower($request['name'], 'UTF-8');
+            $request['source'] = mb_strtolower($request['source'], 'UTF-8');
+            $request['contact'] = mb_strtolower($request['contact'], 'UTF-8');
+            $data = $request->all();
             $proc = "";
             $leads = $this->lead->with('user');
 

@@ -9,6 +9,7 @@ use App\Models\FollowUp;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -22,6 +23,7 @@ class DashboardController extends Controller
     public function leadsTotal(Request $request, Lead $teste)
     {
         try {
+            $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $user = auth('api')->user();
             $data = $request;
             $leads = $teste;
@@ -34,8 +36,8 @@ class DashboardController extends Controller
                 $leads = $leads->whereYear('created_at', $data['year']);
             }
 
-            if (isset($data['mouth']) && $data['mouth'] != '') {
-                $leads = $leads->whereMonth('created_at', $data['mouth']);
+            if (isset($data['month']) && $data['month'] != '') {
+                $leads = $leads->whereMonth('created_at', $data['month']);
             }
 
             if (isset($data['source']) && $data['source'] != '') {
@@ -61,6 +63,7 @@ class DashboardController extends Controller
     public function leadsOpen(Request $request, Lead $teste)
     {
         try {
+            $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $user = auth('api')->user();
             $data = $request;
             $leads = $teste;
@@ -73,8 +76,8 @@ class DashboardController extends Controller
                 $leads = $leads->whereYear('created_at', $data['year']);
             }
 
-            if (isset($data['mouth']) && $data['mouth'] != '') {
-                $leads = $leads->whereMonth('created_at', $data['mouth']);
+            if (isset($data['month']) && $data['month'] != '') {
+                $leads = $leads->whereMonth('created_at', $data['month']);
             }
 
             if (isset($data['source']) && $data['source'] != '') {
@@ -100,6 +103,7 @@ class DashboardController extends Controller
     public function leadsClose(Request $request, Lead $teste)
     {
         try {
+            $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $user = auth('api')->user();
             $data = $request;
             $leads = $teste;
@@ -124,8 +128,8 @@ class DashboardController extends Controller
                 $leads = $leads->whereYear('leads.created_at', $data['year']);
             }
 
-            if (isset($data['mouth']) && $data['mouth'] != '') {
-                $leads = $leads->whereMonth('leads.created_at', $data['mouth']);
+            if (isset($data['month']) && $data['month'] != '') {
+                $leads = $leads->whereMonth('leads.created_at', $data['month']);
             }
 
             if (isset($data['source']) && $data['source'] != '') {
@@ -145,6 +149,7 @@ class DashboardController extends Controller
     public function leadsSales(Request $request, Lead $teste)
     {
         try {
+            $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $user = auth('api')->user();
             $data = $request;
             $leads = $teste;
@@ -168,8 +173,8 @@ class DashboardController extends Controller
                 $leads = $leads->whereYear('leads.created_at', $data['year']);
             }
 
-            if (isset($data['mouth']) && $data['mouth'] != '') {
-                $leads = $leads->whereMonth('leads.created_at', $data['mouth']);
+            if (isset($data['month']) && $data['month'] != '') {
+                $leads = $leads->whereMonth('leads.created_at', $data['month']);
             }
 
             if (isset($data['source']) && $data['source'] != '') {
@@ -219,6 +224,7 @@ class DashboardController extends Controller
     public function graphicLead(Request $request, Lead $lead)
     {
         try {
+            $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $data = $request;
             $leads = $lead;
 
@@ -261,6 +267,7 @@ class DashboardController extends Controller
     public function graphicOpen(Request $request, Lead $lead)
     {
         try {
+            $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $data = $request;
             $leads = $lead;
 
@@ -304,6 +311,7 @@ class DashboardController extends Controller
     public function graphicClose(Request $request, Lead $lead)
     {
         try {
+            $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $data = $request;
             $leads = $lead;
 
@@ -349,6 +357,7 @@ class DashboardController extends Controller
     public function graphicSale(Request $request, Lead $lead)
     {
         try {
+            $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $data = $request;
             $leads = $lead;
 

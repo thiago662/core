@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Api\ApiMessages;
 use App\Http\Requests\UserRequest;
 use App\Models\Lead;
+use App\Models\FollowUp;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -37,6 +38,8 @@ class UserController extends Controller
     public function store(UserRequest $request)
     {
         try {
+            $request['name'] = mb_strtolower($request['name'], 'UTF-8');
+            $request['email'] = mb_strtolower($request['email'], 'UTF-8');
             $data = $request->all();
 
             if (!$request->has('password') || !$request->get('password')) {
@@ -79,6 +82,8 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            $request['name'] = mb_strtolower($request['name'], 'UTF-8');
+            $request['email'] = mb_strtolower($request['email'], 'UTF-8');
             $data = $request->all();
 
             Validator::make($data, [
@@ -112,7 +117,7 @@ class UserController extends Controller
     public function destroy($id)
     {
         try {
-            Lead::where('user_id', $id)->delete();
+            Lead::where('user_id', $id)->update(['user_id' => auth('api')->user()->id]);
 
             $this->user
                 ->findOrFail($id)
@@ -133,6 +138,9 @@ class UserController extends Controller
     public function filter(Request $request)
     {
         try {
+            $request['name'] = mb_strtolower($request['name'], 'UTF-8');
+            $request['email'] = mb_strtolower($request['email'], 'UTF-8');
+            $request['type'] = mb_strtolower($request['type'], 'UTF-8');
             $data = $request;
             $proc = "";
             $users = $this->user;

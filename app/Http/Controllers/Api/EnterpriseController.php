@@ -38,6 +38,7 @@ class EnterpriseController extends Controller
     public function store(Request $request)
     {
         try {
+            $request['name'] = mb_strtolower($request['name'], 'UTF-8');
             $data = $request->all();
 
             if (!$request->has('password') || !$request->get('password')) {
@@ -51,8 +52,8 @@ class EnterpriseController extends Controller
                 ->user()
                 ->create(
                     [
-                        'name' => $data['name_user'],
-                        'email' => $data['email'],
+                        'name' => mb_strtolower($data['name_user'], 'UTF-8'),
+                        'email' => mb_strtolower($data['email'], 'UTF-8'),
                         'password' => bcrypt($data['password']),
                         'type' => "administrador"
                     ]
@@ -82,6 +83,8 @@ class EnterpriseController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            $request['name'] = mb_strtolower($request['name'], 'UTF-8');
+            $request['address'] = mb_strtolower($request['address'], 'UTF-8');
             $data = $request->all();
 
             $this->enterprise

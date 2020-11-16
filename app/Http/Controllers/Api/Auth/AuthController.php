@@ -13,7 +13,8 @@ class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        $credentials = $request->all(['email','password']);
+        $request['email'] = mb_strtolower($request['email'], 'UTF-8');
+        $credentials = $request->all(['email', 'password']);
 
         Validator::make($credentials, [
             'email' => 'required|string',
@@ -25,7 +26,7 @@ class AuthController extends Controller
 
             return response()->json($message->getMessage(), 401);
         } else {
-            
+
             return $this->responseToken($token);
         }
     }
@@ -46,16 +47,17 @@ class AuthController extends Controller
 
     public function signup(Request $request)
     {
+        $request['name'] = mb_strtolower($request['name'], 'UTF-8');
         $data = $request->all();
 
-        Validator::make($data,[
+        Validator::make($data, [
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:8'
         ])->validate();
 
         if (!$request->has('password') || !$request->get('password')) {
             $message = new ApiMessages('You need to have a password');
-            
+
             return response()->json($message->getMessage(), 401);
         }
 
@@ -64,8 +66,8 @@ class AuthController extends Controller
                 ->user()
                 ->create(
                     [
-                        'name' => $data['name_user'],
-                        'email' => $data['email'],
+                        'name' => mb_strtolower($data['name_user'], 'UTF-8'),
+                        'email' => mb_strtolower($data['email'], 'UTF-8'),
                         'password' => bcrypt($data['password']),
                         'type' => "administrador"
                     ]
