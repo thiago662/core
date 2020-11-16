@@ -181,4 +181,18 @@ class UserController extends Controller
             return response()->json($message->getMessage(), 401);
         }
     }
+
+    public function profile()
+    {
+        try {
+            $user = auth('api')->user()->name;
+            $name = explode(" ", $user);
+
+            return response()->json($name[0], 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
+        }
+    }
 }

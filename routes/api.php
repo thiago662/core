@@ -61,6 +61,9 @@ Route::prefix('v1')->group(function () {
 
             // Todos menos atendente
             Route::get('clerks', [UserController::class, 'clerks'])->name('users.clerks');
+
+            // Retornar seu perfil
+            Route::get('profile', [UserController::class, 'profile'])->name('users.profile');
     
         });
     
