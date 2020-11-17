@@ -48,6 +48,8 @@ class FollowUpController extends Controller
             } else if (isset($data['type']) && $data['type'] == "vendido") {
                 if ($data['created_at'] == "") {
                     unset($data['created_at']);
+                } else {
+                    $data['created_at'] = date("Y-m-d H:i:s", strtotime('+12 hour', strtotime($data['created_at'])));
                 }
                 $data['message'] = "lead vendido";
                 $this->followUp->create($data);
@@ -61,7 +63,7 @@ class FollowUpController extends Controller
                 $this->followUp->create($data);
 
                 $lead = Lead::find($data['lead_id']);
-                $lead->status = 2;
+                $lead->status = 3;
                 $lead->save();
             }
 

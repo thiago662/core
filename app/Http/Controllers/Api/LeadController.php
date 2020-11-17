@@ -153,27 +153,26 @@ class LeadController extends Controller
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $request['contact'] = mb_strtolower($request['contact'], 'UTF-8');
             $data = $request->all();
-            $proc = "";
+            $string = "";
             $leads = $this->lead->with('user');
 
             if (isset($data['name']) && $data['name'] != '') {
-                $proc = "%" . $data['name'] . "%";
-                $leads = $leads->where('name', 'LIKE', $proc);
+                $string = "%" . $data['name'] . "%";
+                $leads = $leads->where('name', 'LIKE', $string);
             }
 
             if (isset($data['contact']) && $data['contact'] != '') {
-                $proc = "%" . $data['contact'] . "%";
-                $leads = $leads->where('contact', 'LIKE', $proc);
+                $string = "%" . $data['contact'] . "%";
+                $leads = $leads->where('contact', 'LIKE', $string);
             }
 
             if (isset($data['source']) && $data['source'] != '') {
-                $proc = "%" . $data['source'] . "%";
-                $leads = $leads->where('source', 'LIKE', $proc);
+                $string = "%" . $data['source'] . "%";
+                $leads = $leads->where('source', 'LIKE', $string);
             }
 
             if (isset($data['user_id']) && $data['user_id'] != '') {
                 $leads = $leads->where('user_id', $data['user_id']);
-                // $leads = $leads->whereIn('user_id', $data['user_id']);
             }
 
             return response()->json($leads->orderBy('id')->get(), 200);

@@ -142,22 +142,22 @@ class UserController extends Controller
             $request['email'] = mb_strtolower($request['email'], 'UTF-8');
             $request['type'] = mb_strtolower($request['type'], 'UTF-8');
             $data = $request;
-            $proc = "";
+            $string = "";
             $users = $this->user;
 
             if (isset($data['name']) && $data['name'] != '') {
-                $proc = "%" . $data['name'] . "%";
-                $users = $users->where('name', 'LIKE', $proc);
+                $string = "%" . $data['name'] . "%";
+                $users = $users->where('name', 'LIKE', $string);
             }
 
             if (isset($data['email']) && $data['email'] != '') {
-                $proc = "%" . $data['email'] . "%";
-                $users = $users->where('email', 'LIKE', $proc);
+                $string = "%" . $data['email'] . "%";
+                $users = $users->where('email', 'LIKE', $string);
             }
 
             if (isset($data['type']) && $data['type'] != '') {
-                $proc = "%" . $data['type'] . "%";
-                $users = $users->where('type', 'LIKE', $proc);
+                $string = "%" . $data['type'] . "%";
+                $users = $users->where('type', 'LIKE', $string);
             }
 
             return response()->json($users->orderBy('id')->get(), 200);

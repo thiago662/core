@@ -16,17 +16,16 @@ class DashboardController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('administrator')->only([]);
     }
 
     // retorna a quantidade de leads total
-    public function leadsTotal(Request $request, Lead $teste)
+    public function leadsTotal(Request $request, Lead $lead)
     {
         try {
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $user = auth('api')->user();
             $data = $request;
-            $leads = $teste;
+            $leads = $lead;
 
             if (isset($data['user_id']) && $data['user_id'] != '') {
                 $leads = $leads->where('user_id', $data['user_id']);
@@ -41,8 +40,8 @@ class DashboardController extends Controller
             }
 
             if (isset($data['source']) && $data['source'] != '') {
-                $teste = "%" . $data['source'] . "%";
-                $leads = $leads->where('source', 'LIKE', $teste);
+                $string = "%" . $data['source'] . "%";
+                $leads = $leads->where('source', 'LIKE', $string);
             }
 
             if ($user->type == 'atendente') {
@@ -60,13 +59,13 @@ class DashboardController extends Controller
     }
 
     // retorna todos so leads
-    public function leadsOpen(Request $request, Lead $teste)
+    public function leadsOpen(Request $request, Lead $lead)
     {
         try {
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $user = auth('api')->user();
             $data = $request;
-            $leads = $teste;
+            $leads = $lead;
 
             if (isset($data['user_id']) && $data['user_id'] != '') {
                 $leads = $leads->where('user_id', $data['user_id']);
@@ -81,8 +80,8 @@ class DashboardController extends Controller
             }
 
             if (isset($data['source']) && $data['source'] != '') {
-                $teste = "%" . $data['source'] . "%";
-                $leads = $leads->where('source', 'LIKE', $teste);
+                $string = "%" . $data['source'] . "%";
+                $leads = $leads->where('source', 'LIKE', $string);
             }
 
             if ($user->type == 'atendente') {
@@ -100,24 +99,24 @@ class DashboardController extends Controller
     }
 
     // retorna todos so leads
-    public function leadsClose(Request $request, Lead $teste)
+    public function leadsClose(Request $request, Lead $lead)
     {
         try {
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $user = auth('api')->user();
             $data = $request;
-            $leads = $teste;
+            $leads = $lead;
 
             // teste
             if ($user->type == 'atendente') {
                 $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
-                    ->whereIn('follow_ups.type', ['vendido', 'n_vendido'])
-                    ->where('leads.status', '2')
+                    ->where('follow_ups.type', 'n_vendido')
+                    ->where('leads.status', '3')
                     ->where('leads.user_id', $user->id);
             } else if ($user->type == 'administrador') {
                 $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
-                    ->whereIn('follow_ups.type', ['vendido', 'n_vendido'])
-                    ->where('leads.status', '2');
+                    ->where('follow_ups.type', 'n_vendido')
+                    ->where('leads.status', '3');
             }
 
             if (isset($data['user_id']) && $data['user_id'] != '') {
@@ -133,8 +132,8 @@ class DashboardController extends Controller
             }
 
             if (isset($data['source']) && $data['source'] != '') {
-                $teste = "%" . $data['source'] . "%";
-                $leads = $leads->where('leads.source', 'LIKE', $teste);
+                $string = "%" . $data['source'] . "%";
+                $leads = $leads->where('leads.source', 'LIKE', $string);
             }
 
             return response()->json(count($leads->get()), 200);
@@ -146,13 +145,13 @@ class DashboardController extends Controller
     }
 
     // retorna todos so leads
-    public function leadsSales(Request $request, Lead $teste)
+    public function leadsSales(Request $request, Lead $lead)
     {
         try {
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $user = auth('api')->user();
             $data = $request;
-            $leads = $teste;
+            $leads = $lead;
 
             if ($user->type == 'atendente') {
                 $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
@@ -178,8 +177,8 @@ class DashboardController extends Controller
             }
 
             if (isset($data['source']) && $data['source'] != '') {
-                $teste = "%" . $data['source'] . "%";
-                $leads = $leads->where('leads.source', 'LIKE', $teste);
+                $string = "%" . $data['source'] . "%";
+                $leads = $leads->where('leads.source', 'LIKE', $string);
             }
 
             return response()->json(count($leads->get()), 200);
@@ -241,8 +240,8 @@ class DashboardController extends Controller
             }
 
             if (isset($data['source']) && $data['source'] != '') {
-                $teste = "%" . $data['source'] . "%";
-                $leads = $leads->where('leads.source', 'LIKE', $teste);
+                $string = "%" . $data['source'] . "%";
+                $leads = $leads->where('leads.source', 'LIKE', $string);
             }
 
             $leads = $leads->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
@@ -284,8 +283,8 @@ class DashboardController extends Controller
             }
 
             if (isset($data['source']) && $data['source'] != '') {
-                $teste = "%" . $data['source'] . "%";
-                $leads = $leads->where('leads.source', 'LIKE', $teste);
+                $string = "%" . $data['source'] . "%";
+                $leads = $leads->where('leads.source', 'LIKE', $string);
             }
 
             $leads = $leads->where('status', '0')
@@ -328,13 +327,13 @@ class DashboardController extends Controller
             }
 
             if (isset($data['source']) && $data['source'] != '') {
-                $teste = "%" . $data['source'] . "%";
-                $leads = $leads->where('leads.source', 'LIKE', $teste);
+                $string = "%" . $data['source'] . "%";
+                $leads = $leads->where('leads.source', 'LIKE', $string);
             }
 
             $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
-                ->whereIn('follow_ups.type', ['vendido', 'n_vendido'])
-                ->where('leads.status', '2')
+                ->where('follow_ups.type', 'n_vendido')
+                ->where('leads.status', '3')
                 ->select(DB::raw('DATE(follow_ups.created_at) as date'), DB::raw('count(*) as leads'))
                 ->groupBy('date')
                 ->get();
@@ -374,9 +373,10 @@ class DashboardController extends Controller
             }
 
             if (isset($data['source']) && $data['source'] != '') {
-                $teste = "%" . $data['source'] . "%";
-                $leads = $leads->where('leads.source', 'LIKE', $teste);
+                $string = "%" . $data['source'] . "%";
+                $leads = $leads->where('leads.source', 'LIKE', $string);
             }
+
             $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
                 ->where('follow_ups.type', 'vendido')
                 ->where('leads.status', '2')
