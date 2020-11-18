@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Api\ApiMessages;
 use App\Http\Controllers\Controller;
+use App\Models\FollowUp;
 use App\Models\Lead;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -91,10 +92,15 @@ class LeadController extends Controller
     public function show($id)
     {
         try {
-            $enterprise_id = auth('api')->user()->enterprise_id;
-            $lead = $this->lead->with(['followUp', 'user'])->where('enterprise_id', $enterprise_id)->findOrFail($id);
+            $user = auth('api')->user();
+            $lead = $this->lead->with(['followUp', 'user'])->where('enterprise_id', $user->enterprise_id)->findOrFail($id);
 
-            return response()->json($lead, 200);
+            if ($user->type == "administrador") {
+                return response()->json($lead, 200);
+            } else if ($user->type == "atendente" && $user->id == $lead->user_id) {
+                return response()->json($lead, 200);
+            }
+            
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -129,6 +135,8 @@ class LeadController extends Controller
     public function destroy($id)
     {
         try {
+            FollowUp::where('lead_id', $id)->delete();
+            
             $this->lead
                 ->findOrFail($id)
                 ->delete();

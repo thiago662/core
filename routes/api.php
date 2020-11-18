@@ -5,8 +5,8 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EnterpriseController;
 use App\Http\Controllers\Api\FollowUpController;
 use App\Http\Controllers\Api\LeadController;
+use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\UserController;
-use GuzzleHttp\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -88,7 +88,7 @@ Route::prefix('v1')->group(function () {
     
         });
     
-        // Dashboard = ;
+        // Dashboard = graphicLead, graphicOpen, graphicClose, graphicSale, ranking, leadsTotal, leadsOpen, leadsClose, leadsSales;
         // middleware = ;
         Route::name('dashboard.')->group(function () {
 
@@ -110,6 +110,20 @@ Route::prefix('v1')->group(function () {
 
             Route::post('dashboard/sales', [DashboardController::class, 'leadsSales'])->name('dashboard.sales');
     
+        });
+    
+        // FolllowUps = index;
+        // middleware = index;
+        Route::name('log.')->group(function () {
+
+            Route::get('log/leads', [LogController::class, 'index'])->name('log.leads');
+
+            Route::put('log/leads/{id}', [LogController::class, 'update'])->name('log.leads.update');
+
+            Route::delete('log/leads/{id}', [LogController::class, 'destroy'])->name('log.leads.destroy');
+
+            Route::delete('log/leads', [LogController::class, 'destroyAll'])->name('log.leads.destroy.all');
+
         });
 
     });

@@ -185,10 +185,10 @@ class UserController extends Controller
     public function profile()
     {
         try {
-            $user = auth('api')->user()->name;
-            $name = explode(" ", $user);
+            $user = auth('api')->user();
+            $user->name = explode(" ", $user->name);
 
-            return response()->json($name[0], 200);
+            return response()->json($user->name[0], 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 

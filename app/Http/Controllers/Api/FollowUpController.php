@@ -82,9 +82,17 @@ class FollowUpController extends Controller
     public function show($id)
     {
         try {
-            $followUp = $this->followUp->where('lead_id', $id)->orderBy('id', 'DESC')->get();
+            $user = auth('api')->user();
+            $lead = Lead::where('enterprise_id', $user->enterprise_id)->findOrFail($id);
 
-            return response()->json($followUp, 200);
+            $followUp = $this->followUp->where('lead_id', $lead->id)->orderBy('id', 'DESC')->get();
+            
+            if ($user->type == "administrador") {
+                return response()->json($followUp, 200);
+            } else if ($user->type == "atendente" && $user->id == $lead->user_id) {
+                return response()->json($followUp, 200);
+            }
+            
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
