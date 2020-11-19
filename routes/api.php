@@ -116,11 +116,9 @@ Route::prefix('v1')->group(function () {
         // middleware = index;
         Route::name('log.')->group(function () {
 
-            Route::get('log/leads', [LogController::class, 'index'])->name('log.leads');
-
-            Route::put('log/leads/{id}', [LogController::class, 'update'])->name('log.leads.update');
-
-            Route::delete('log/leads/{id}', [LogController::class, 'destroy'])->name('log.leads.destroy');
+            Route::apiResource('log/leads', LogController::class)->except([
+                'store'
+            ]);
 
             Route::delete('log/leads', [LogController::class, 'destroyAll'])->name('log.leads.destroy.all');
 
