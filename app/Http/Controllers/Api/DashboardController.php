@@ -25,7 +25,7 @@ class DashboardController extends Controller
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $user = auth('api')->user();
             $data = $request;
-            $leads = $lead;
+            $leads = $lead->where('enterprise_id', $user->enterprise_id);
 
             if (isset($data['user_id']) && $data['user_id'] != '') {
                 $leads = $leads->where('user_id', $data['user_id']);
@@ -65,7 +65,7 @@ class DashboardController extends Controller
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $user = auth('api')->user();
             $data = $request;
-            $leads = $lead;
+            $leads = $lead->where('enterprise_id', $user->enterprise_id);
 
             if (isset($data['user_id']) && $data['user_id'] != '') {
                 $leads = $leads->where('user_id', $data['user_id']);
@@ -105,7 +105,7 @@ class DashboardController extends Controller
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $user = auth('api')->user();
             $data = $request;
-            $leads = $lead;
+            $leads = $lead->where('enterprise_id', $user->enterprise_id);
 
             // teste
             if ($user->type == 'atendente') {
@@ -151,7 +151,7 @@ class DashboardController extends Controller
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $user = auth('api')->user();
             $data = $request;
-            $leads = $lead;
+            $leads = $lead->where('enterprise_id', $user->enterprise_id);
 
             if ($user->type == 'atendente') {
                 $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
@@ -193,8 +193,9 @@ class DashboardController extends Controller
     public function ranking()
     {
         try {
+            $enterprise = auth('api')->user()->enterprise_id;
             $rank = array();
-            $users = User::where('type', '!=', 'administrador')->get();
+            $users = User::where('enterprise_id', $enterprise)->where('type', '!=', 'administrador')->get();
 
             foreach ($users as $user) {
                 $leads = Lead::where('user_id', $user->id)->get()->count();
@@ -225,7 +226,8 @@ class DashboardController extends Controller
         try {
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $data = $request;
-            $leads = $lead;
+            $enterprise = auth('api')->user()->enterprise_id;
+            $leads = $lead->where('enterprise_id', $enterprise);
 
             if (isset($data['user_id']) && $data['user_id'] != '') {
                 $leads = $leads->where('leads.user_id', $data['user_id']);
@@ -268,7 +270,8 @@ class DashboardController extends Controller
         try {
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $data = $request;
-            $leads = $lead;
+            $enterprise = auth('api')->user()->enterprise_id;
+            $leads = $lead->where('enterprise_id', $enterprise);
 
             if (isset($data['user_id']) && $data['user_id'] != '') {
                 $leads = $leads->where('leads.user_id', $data['user_id']);
@@ -312,7 +315,8 @@ class DashboardController extends Controller
         try {
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $data = $request;
-            $leads = $lead;
+            $enterprise = auth('api')->user()->enterprise_id;
+            $leads = $lead->where('enterprise_id', $enterprise);
 
             if (isset($data['user_id']) && $data['user_id'] != '') {
                 $leads = $leads->where('leads.user_id', $data['user_id']);
@@ -358,7 +362,8 @@ class DashboardController extends Controller
         try {
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $data = $request;
-            $leads = $lead;
+            $enterprise = auth('api')->user()->enterprise_id;
+            $leads = $lead->where('enterprise_id', $enterprise);
 
             if (isset($data['user_id']) && $data['user_id'] != '') {
                 $leads = $leads->where('leads.user_id', $data['user_id']);
