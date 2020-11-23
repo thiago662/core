@@ -20,7 +20,7 @@ class LogController extends Controller
         try {
             $user = auth('api')->user();
 
-            $leads = Lead::onlyTrashed()->where('enterprise_id', $user->enterprise_id)->get();
+            $leads = Lead::with('user')->onlyTrashed()->where('enterprise_id', $user->enterprise_id)->get();
 
             return response()->json($leads, 200);
         } catch (\Exception $e) {
@@ -35,7 +35,7 @@ class LogController extends Controller
         try {
             $user = auth('api')->user();
 
-            $leads = Lead::onlyTrashed()->where('enterprise_id', $user->enterprise_id)->where("id", $id)->get();
+            $leads = Lead::with('user')->onlyTrashed()->where('enterprise_id', $user->enterprise_id)->find($id);
 
             return response()->json($leads, 200);
         } catch (\Exception $e) {
@@ -50,7 +50,7 @@ class LogController extends Controller
         try {
             $user = auth('api')->user();
 
-            Lead::onlyTrashed()->where('enterprise_id', $user->enterprise_id)->where('id', $id)->restore();
+            Lead::with('user')->onlyTrashed()->where('enterprise_id', $user->enterprise_id)->find($id)->restore();
             FollowUp::onlyTrashed()->join('leads', 'leads.id', '=', 'follow_ups.lead_id')
                 ->where('leads.enterprise_id', $user->enterprise_id)
                 ->where('lead_id', $id)
@@ -73,7 +73,7 @@ class LogController extends Controller
                 ->where('leads.enterprise_id', $user->enterprise_id)
                 ->where('lead_id', $id)
                 ->forceDelete();
-            Lead::onlyTrashed()->where('enterprise_id', $user->enterprise_id)->where('id', $id)->forceDelete();
+            Lead::onlyTrashed()->where('enterprise_id', $user->enterprise_id)->find($id)->forceDelete();
 
             return response()->json("Lead deleted with success", 200);
         } catch (\Exception $e) {
