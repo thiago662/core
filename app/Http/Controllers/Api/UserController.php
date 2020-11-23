@@ -121,7 +121,7 @@ class UserController extends Controller
 
             $this->user
                 ->findOrFail($id)
-                ->delete();
+                ->forceDelete();
 
             return response()->json([
                 'data' => [
