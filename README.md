@@ -9,6 +9,18 @@
 
 ## About Laravel
 
+PROBLEMAS COM A MEMORIA DO PHP
+
+1 - Rodar o `php --ini` para localizar o php.ini
+
+2 - Localizar o `memory_limit` e alterar ele de 120MB para -1
+
+PROBLEMAS COM A PORTA
+
+1 - Rodas `sudo kill $(sudo lsof -t -i:8000)`
+
+RODAR O PROJETO
+
 1 - Baixar a pasta vendor com todas as dependencias
     `composer update`
 
