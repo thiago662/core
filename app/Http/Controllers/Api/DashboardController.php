@@ -5,52 +5,25 @@ namespace App\Http\Controllers\Api;
 use App\Api\ApiMessages;
 use App\Models\Lead;
 use App\Models\User;
-use App\Models\FollowUp;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
-use Exception;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    public function __construct()
-    {
-    }
-
     // retorna a quantidade de leads total
     public function leadsTotal(Request $request, Lead $lead)
     {
         try {
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
+            $data = $request->all();
+
             $user = auth('api')->user();
-            $data = $request;
-            $leads = $lead->where('enterprise_id', $user->enterprise_id);
 
-            if (isset($data['user_id']) && $data['user_id'] != '') {
-                $leads = $leads->where('user_id', $data['user_id']);
-            }
+            $leads = $this->filter($data, $lead, $user->enterprise_id);
+            $leads = $this->authorization($user, $leads);
 
-            if (isset($data['year']) && $data['year'] != '') {
-                $leads = $leads->whereYear('created_at', $data['year']);
-            }
-
-            if (isset($data['month']) && $data['month'] != '') {
-                $leads = $leads->whereMonth('created_at', $data['month']);
-            }
-
-            if (isset($data['source']) && $data['source'] != '') {
-                $string = "%" . $data['source'] . "%";
-                $leads = $leads->where('source', 'LIKE', $string);
-            }
-
-            if ($user->type == 'atendente') {
-                $leads = count($leads->where('user_id', $user->id)->get());
-            } else if ($user->type == 'administrador') {
-                $leads = count($leads->get());
-            }
-
-            return response()->json($leads, 200);
+            return response()->json($leads->get()->count(), 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -63,34 +36,38 @@ class DashboardController extends Controller
     {
         try {
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
+            $data = $request->all();
+
             $user = auth('api')->user();
-            $data = $request;
-            $leads = $lead->where('enterprise_id', $user->enterprise_id);
 
-            if (isset($data['user_id']) && $data['user_id'] != '') {
-                $leads = $leads->where('user_id', $data['user_id']);
-            }
+            $leads = $this->filter($data, $lead, $user->enterprise_id);
+            $leads = $leads->where('status', '0');
+            $leads = $this->authorization($user, $leads);
 
-            if (isset($data['year']) && $data['year'] != '') {
-                $leads = $leads->whereYear('created_at', $data['year']);
-            }
+            return response()->json($leads->get()->count(), 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
 
-            if (isset($data['month']) && $data['month'] != '') {
-                $leads = $leads->whereMonth('created_at', $data['month']);
-            }
+            return response()->json($message->getMessage(), 401);
+        }
+    }
 
-            if (isset($data['source']) && $data['source'] != '') {
-                $string = "%" . $data['source'] . "%";
-                $leads = $leads->where('source', 'LIKE', $string);
-            }
+    // retorna todos os leads
+    public function leadsClose(Request $request, Lead $leads)
+    {
+        try {
+            $request['source'] = mb_strtolower($request['source'], 'UTF-8');
+            $data = $request->all();
 
-            if ($user->type == 'atendente') {
-                $leads = count($leads->where('user_id', $user->id)->where('status', '0')->get());
-            } else if ($user->type == 'administrador') {
-                $leads = count($leads->where('status', '0')->get());
-            }
+            $user = auth('api')->user();
 
-            return response()->json($leads, 200);
+            $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
+                ->where('follow_ups.type', 'n_vendido')
+                ->where('leads.status', '3');
+            $leads = $this->authorization($user, $leads);
+            $leads = $this->filter($data, $leads, $user->enterprise_id);
+
+            return response()->json($leads->get()->count(), 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -99,89 +76,21 @@ class DashboardController extends Controller
     }
 
     // retorna todos so leads
-    public function leadsClose(Request $request, Lead $lead)
+    public function leadsSales(Request $request, Lead $leads)
     {
         try {
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
+            $data = $request->all();
+
             $user = auth('api')->user();
-            $data = $request;
-            $leads = $lead->where('enterprise_id', $user->enterprise_id);
 
-            // teste
-            if ($user->type == 'atendente') {
-                $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
-                    ->where('follow_ups.type', 'n_vendido')
-                    ->where('leads.status', '3')
-                    ->where('leads.user_id', $user->id);
-            } else if ($user->type == 'administrador') {
-                $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
-                    ->where('follow_ups.type', 'n_vendido')
-                    ->where('leads.status', '3');
-            }
+            $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
+                ->where('follow_ups.type', 'vendido')
+                ->where('leads.status', '2');
+            $leads = $this->authorization($user, $leads);
+            $leads = $this->filter($data, $leads, $user->enterprise_id);
 
-            if (isset($data['user_id']) && $data['user_id'] != '') {
-                $leads = $leads->where('leads.user_id', $data['user_id']);
-            }
-
-            if (isset($data['year']) && $data['year'] != '') {
-                $leads = $leads->whereYear('leads.created_at', $data['year']);
-            }
-
-            if (isset($data['month']) && $data['month'] != '') {
-                $leads = $leads->whereMonth('leads.created_at', $data['month']);
-            }
-
-            if (isset($data['source']) && $data['source'] != '') {
-                $string = "%" . $data['source'] . "%";
-                $leads = $leads->where('leads.source', 'LIKE', $string);
-            }
-
-            return response()->json(count($leads->get()), 200);
-        } catch (\Exception $e) {
-            $message = new ApiMessages($e->getMessage());
-
-            return response()->json($message->getMessage(), 401);
-        }
-    }
-
-    // retorna todos so leads
-    public function leadsSales(Request $request, Lead $lead)
-    {
-        try {
-            $request['source'] = mb_strtolower($request['source'], 'UTF-8');
-            $user = auth('api')->user();
-            $data = $request;
-            $leads = $lead->where('enterprise_id', $user->enterprise_id);
-
-            if ($user->type == 'atendente') {
-                $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
-                    ->where('leads.user_id', $user->id)
-                    ->where('follow_ups.type', 'vendido')
-                    ->where('leads.status', '2');
-            } else if ($user->type == 'administrador') {
-                $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
-                    ->where('follow_ups.type', 'vendido')
-                    ->where('leads.status', '2');
-            }
-
-            if (isset($data['user_id']) && $data['user_id'] != '') {
-                $leads = $leads->where('leads.user_id', $data['user_id']);
-            }
-
-            if (isset($data['year']) && $data['year'] != '') {
-                $leads = $leads->whereYear('leads.created_at', $data['year']);
-            }
-
-            if (isset($data['month']) && $data['month'] != '') {
-                $leads = $leads->whereMonth('leads.created_at', $data['month']);
-            }
-
-            if (isset($data['source']) && $data['source'] != '') {
-                $string = "%" . $data['source'] . "%";
-                $leads = $leads->where('leads.source', 'LIKE', $string);
-            }
-
-            return response()->json(count($leads->get()), 200);
+            return response()->json($leads->get()->count(), 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -200,12 +109,11 @@ class DashboardController extends Controller
             foreach ($users as $user) {
                 $leads = Lead::where('user_id', $user->id)->get()->count();
 
-                $sales = count(
-                    Lead::join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
-                        ->where('leads.user_id', $user->id)
-                        ->where('follow_ups.type', 'vendido')
-                        ->get()
-                );
+                $sales = Lead::join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
+                    ->where('leads.user_id', $user->id)
+                    ->where('follow_ups.type', 'vendido')
+                    ->get()
+                    ->count();
 
                 array_push($rank, array('id' => $user->id, 'user' => $user->name, 'leads' => $leads, 'sales' => $sales));
             }
@@ -225,36 +133,15 @@ class DashboardController extends Controller
     {
         try {
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
-            $data = $request;
-            $enterprise = auth('api')->user()->enterprise_id;
-            $leads = $lead->where('enterprise_id', $enterprise);
+            $data = $request->all();
 
-            if (isset($data['user_id']) && $data['user_id'] != '') {
-                $leads = $leads->where('leads.user_id', $data['user_id']);
-            }
+            $user = auth('api')->user();
 
-            if (isset($data['year']) && $data['year'] != '') {
-                $leads = $leads->whereYear('leads.created_at', $data['year']);
-            }
-
-            if (isset($data['month']) && $data['month'] != '') {
-                $leads = $leads->whereMonth('leads.created_at', $data['month']);
-            }
-
-            if (isset($data['source']) && $data['source'] != '') {
-                $string = "%" . $data['source'] . "%";
-                $leads = $leads->where('leads.source', 'LIKE', $string);
-            }
-
+            $leads = $this->filter($data, $lead, $user->enterprise_id);
             $leads = $leads->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
                 ->groupBy('date')
                 ->get();
-
-            $graphic = [];
-
-            foreach ($leads as $value) {
-                array_push($graphic, [strtotime($value['date']) * 1000, $value['leads']]);
-            }
+            $graphic = $this->graphic($leads);
 
             return response()->json($graphic, 200);
         } catch (\Exception $e) {
@@ -269,37 +156,16 @@ class DashboardController extends Controller
     {
         try {
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
-            $data = $request;
-            $enterprise = auth('api')->user()->enterprise_id;
-            $leads = $lead->where('enterprise_id', $enterprise);
+            $data = $request->all();
 
-            if (isset($data['user_id']) && $data['user_id'] != '') {
-                $leads = $leads->where('leads.user_id', $data['user_id']);
-            }
+            $user = auth('api')->user();
 
-            if (isset($data['year']) && $data['year'] != '') {
-                $leads = $leads->whereYear('leads.created_at', $data['year']);
-            }
-
-            if (isset($data['month']) && $data['month'] != '') {
-                $leads = $leads->whereMonth('leads.created_at', $data['month']);
-            }
-
-            if (isset($data['source']) && $data['source'] != '') {
-                $string = "%" . $data['source'] . "%";
-                $leads = $leads->where('leads.source', 'LIKE', $string);
-            }
-
+            $leads = $this->filter($data, $lead, $user->enterprise_id);
             $leads = $leads->where('status', '0')
                 ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
                 ->groupBy('date')
                 ->get();
-
-            $graphic = [];
-
-            foreach ($leads as $value) {
-                array_push($graphic, [strtotime($value['date']) * 1000, $value['leads']]);
-            }
+            $graphic = $this->graphic($leads);
 
             return response()->json($graphic, 200);
         } catch (\Exception $e) {
@@ -314,39 +180,18 @@ class DashboardController extends Controller
     {
         try {
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
-            $data = $request;
-            $enterprise = auth('api')->user()->enterprise_id;
-            $leads = $lead->where('enterprise_id', $enterprise);
+            $data = $request->all();
 
-            if (isset($data['user_id']) && $data['user_id'] != '') {
-                $leads = $leads->where('leads.user_id', $data['user_id']);
-            }
+            $user = auth('api')->user();
 
-            if (isset($data['year']) && $data['year'] != '') {
-                $leads = $leads->whereYear('leads.created_at', $data['year']);
-            }
-
-            if (isset($data['month']) && $data['month'] != '') {
-                $leads = $leads->whereMonth('leads.created_at', $data['month']);
-            }
-
-            if (isset($data['source']) && $data['source'] != '') {
-                $string = "%" . $data['source'] . "%";
-                $leads = $leads->where('leads.source', 'LIKE', $string);
-            }
-
+            $leads = $this->filter($data, $lead, $user->enterprise_id);
             $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
                 ->where('follow_ups.type', 'n_vendido')
                 ->where('leads.status', '3')
                 ->select(DB::raw('DATE(follow_ups.created_at) as date'), DB::raw('count(*) as leads'))
                 ->groupBy('date')
                 ->get();
-
-            $graphic = [];
-
-            foreach ($leads as $value) {
-                array_push($graphic, [strtotime($value['date']) * 1000, $value['leads']]);
-            }
+            $graphic = $this->graphic($leads);
 
             return response()->json($graphic, 200);
         } catch (\Exception $e) {
@@ -361,39 +206,18 @@ class DashboardController extends Controller
     {
         try {
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
-            $data = $request;
-            $enterprise = auth('api')->user()->enterprise_id;
-            $leads = $lead->where('enterprise_id', $enterprise);
+            $data = $request->all();
 
-            if (isset($data['user_id']) && $data['user_id'] != '') {
-                $leads = $leads->where('leads.user_id', $data['user_id']);
-            }
+            $user = auth('api')->user();
 
-            if (isset($data['year']) && $data['year'] != '') {
-                $leads = $leads->whereYear('leads.created_at', $data['year']);
-            }
-
-            if (isset($data['month']) && $data['month'] != '') {
-                $leads = $leads->whereMonth('leads.created_at', $data['month']);
-            }
-
-            if (isset($data['source']) && $data['source'] != '') {
-                $string = "%" . $data['source'] . "%";
-                $leads = $leads->where('leads.source', 'LIKE', $string);
-            }
-
+            $leads = $this->filter($data, $lead, $user->enterprise_id);
             $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
                 ->where('follow_ups.type', 'vendido')
                 ->where('leads.status', '2')
                 ->select(DB::raw('DATE(follow_ups.created_at) as date'), DB::raw('count(*) as leads'))
                 ->groupBy('date')
                 ->get();
-
-            $graphic = [];
-
-            foreach ($leads as $value) {
-                array_push($graphic, [strtotime($value['date']) * 1000, $value['leads']]);
-            }
+            $graphic = $this->graphic($leads);
 
             return response()->json($graphic, 200);
         } catch (\Exception $e) {
@@ -401,5 +225,57 @@ class DashboardController extends Controller
 
             return response()->json($message->getMessage(), 401);
         }
+    }
+
+    // função responsavel pelo filtro
+    public function filter($data, $leads, $enterprise)
+    {
+        $leads = $this->enterprise($leads, $enterprise);
+
+        if (isset($data['user_id']) && $data['user_id'] != '') {
+            $leads = $leads->where('leads.user_id', $data['user_id']);
+        }
+        if (isset($data['year']) && $data['year'] != '') {
+            $leads = $leads->whereYear('leads.created_at', $data['year']);
+        }
+        if (isset($data['month']) && $data['month'] != '') {
+            $leads = $leads->whereMonth('leads.created_at', $data['month']);
+        }
+        if (isset($data['source']) && $data['source'] != '') {
+            $string = "%" . $data['source'] . "%";
+            $leads = $leads->where('leads.source', 'LIKE', $string);
+        }
+
+        return $leads;
+    }
+
+    // função responsavel por converter os dados para o grafico
+    public function graphic($leads)
+    {
+        $graphic = [];
+
+        foreach ($leads as $value) {
+            array_push($graphic, [strtotime($value['date']) * 1000, $value['leads']]);
+        }
+
+        return $graphic;
+    }
+
+    // verifica se é um atendente ou adm
+    public function authorization($user, $leads)
+    {
+        if ($user->type == 'atendente') {
+            $leads = $leads->where('user_id', $user->id);
+        }
+
+        return $leads;
+    }
+
+    // seleciona todos os funcionarios da empresa
+    public function enterprise($lead, $enterprise)
+    {
+        $leads = $lead->where('enterprise_id', $enterprise);
+
+        return $leads;
     }
 }
