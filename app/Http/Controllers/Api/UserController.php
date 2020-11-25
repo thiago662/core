@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use App\Api\ApiMessages;
 use App\Http\Requests\UserRequest;
 use App\Models\Lead;
-use App\Models\FollowUp;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller

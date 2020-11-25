@@ -112,8 +112,8 @@ Route::prefix('v1')->group(function () {
     
         });
     
-        // FolllowUps = index;
-        // middleware = index;
+        // FolllowUps = index, destroy, update, show,;
+        // middleware = store;
         Route::name('log.')->group(function () {
 
             Route::apiResource('log/leads', LogController::class)->except([
