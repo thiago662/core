@@ -17,23 +17,19 @@ class LeadController extends Controller
     public function __construct(Lead $lead)
     {
         $this->lead = $lead;
-        // $this->middleware('administrator')->only('index');
     }
 
     public function index()
     {
-        $enterprise_id = auth('api')->user()->enterprise_id;
-        $user_id = auth('api')->user()->id;
-        $user_type = auth('api')->user()->type;
+        $user = auth('api')->user();
 
-        if ($user_type == "administrador") {
-            $leads = $this->lead->with('user')->where('enterprise_id', $enterprise_id)->orderBy('status')->get();
-        } else {
-            $leads = $this->lead->with('user')->where('enterprise_id', $enterprise_id)->where('user_id', $user_id)->orderBy('status')->get();
+        $leads = $this->lead->with('user')->where('enterprise_id', $user->enterprise_id);
+
+        if ($user->type == "atendente") {
+            $leads = $this->lead->where('user_id', $user->id);
         }
 
-
-        return response()->json($leads, 200);
+        return response()->json($leads->orderBy('status')->get(), 200);
     }
 
     public function store(Request $request)
@@ -46,10 +42,11 @@ class LeadController extends Controller
 
             $user = auth('api')->user();
 
+            $data['enterprise_id'] = $user->enterprise_id;
+            $data['status'] = "0";
+            $data['type'] = "criado";
+
             if ($user->type == "atendente") {
-                $data['enterprise_id'] = $user->enterprise_id;
-                $data['status'] = "0";
-                $data['type'] = "criado";
                 $data['user_id'] = $user->id;
 
                 $this->lead
@@ -62,10 +59,6 @@ class LeadController extends Controller
                         ]
                     );
             } else if ($user->type == "administrador") {
-                $data['enterprise_id'] = $user->enterprise_id;
-                $data['status'] = "0";
-                $data['type'] = "criado";
-
                 $this->lead
                     ->create($data)
                     ->followUp()
@@ -93,14 +86,16 @@ class LeadController extends Controller
     {
         try {
             $user = auth('api')->user();
-            $lead = $this->lead->with(['followUp', 'user'])->where('enterprise_id', $user->enterprise_id)->findOrFail($id);
+            $lead = $this->lead
+                ->with(['followUp', 'user'])
+                ->where('enterprise_id', $user->enterprise_id)
+                ->findOrFail($id);
 
             if ($user->type == "administrador") {
                 return response()->json($lead, 200);
             } else if ($user->type == "atendente" && $user->id == $lead->user_id) {
                 return response()->json($lead, 200);
             }
-            
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -136,7 +131,7 @@ class LeadController extends Controller
     {
         try {
             FollowUp::where('lead_id', $id)->delete();
-            
+
             $this->lead
                 ->findOrFail($id)
                 ->delete();
@@ -161,24 +156,20 @@ class LeadController extends Controller
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $request['contact'] = mb_strtolower($request['contact'], 'UTF-8');
             $data = $request->all();
-            $string = "";
             $leads = $this->lead->with('user');
 
             if (isset($data['name']) && $data['name'] != '') {
                 $string = "%" . $data['name'] . "%";
                 $leads = $leads->where('name', 'LIKE', $string);
             }
-
             if (isset($data['contact']) && $data['contact'] != '') {
                 $string = "%" . $data['contact'] . "%";
                 $leads = $leads->where('contact', 'LIKE', $string);
             }
-
             if (isset($data['source']) && $data['source'] != '') {
                 $string = "%" . $data['source'] . "%";
                 $leads = $leads->where('source', 'LIKE', $string);
             }
-
             if (isset($data['user_id']) && $data['user_id'] != '') {
                 $leads = $leads->where('user_id', $data['user_id']);
             }

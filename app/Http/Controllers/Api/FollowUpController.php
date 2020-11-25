@@ -43,8 +43,8 @@ class FollowUpController extends Controller
                 $lead = Lead::find($data['lead_id']);
                 if ($lead->status == 0) {
                     $lead->status = 1;
+                    $lead->save();
                 }
-                $lead->save();
             } else if (isset($data['type']) && $data['type'] == "vendido") {
                 if ($data['created_at'] == "") {
                     unset($data['created_at']);
@@ -86,13 +86,10 @@ class FollowUpController extends Controller
             $lead = Lead::where('enterprise_id', $user->enterprise_id)->findOrFail($id);
 
             $followUp = $this->followUp->where('lead_id', $lead->id)->orderBy('id', 'DESC')->get();
-            
-            if ($user->type == "administrador") {
-                return response()->json($followUp, 200);
-            } else if ($user->type == "atendente" && $user->id == $lead->user_id) {
+
+            if ($user->type == "administrador" || ($user->type == "atendente" && $user->id == $lead->user_id)) {
                 return response()->json($followUp, 200);
             }
-            
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 

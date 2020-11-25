@@ -25,9 +25,11 @@ class UserController extends Controller
     {
         try {
             $enterprise_id = auth('api')->user()->enterprise_id;
-            $users = $this->user->where('enterprise_id', $enterprise_id)->orderBy('id')->get();
+            $users = $this->user
+                ->where('enterprise_id', $enterprise_id)
+                ->orderBy('id');
 
-            return response()->json($users, 200);
+            return response()->json($users->get(), 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -69,7 +71,9 @@ class UserController extends Controller
     {
         try {
             $enterprise_id = auth('api')->user()->enterprise_id;
-            $user = $this->user->where('enterprise_id', $enterprise_id)->findOrFail($id);
+            $user = $this->user
+                ->where('enterprise_id', $enterprise_id)
+                ->findOrFail($id);
 
             return response()->json($user, 200);
         } catch (\Exception $e) {
@@ -149,12 +153,10 @@ class UserController extends Controller
                 $string = "%" . $data['name'] . "%";
                 $users = $users->where('name', 'LIKE', $string);
             }
-
             if (isset($data['email']) && $data['email'] != '') {
                 $string = "%" . $data['email'] . "%";
                 $users = $users->where('email', 'LIKE', $string);
             }
-
             if (isset($data['type']) && $data['type'] != '') {
                 $string = "%" . $data['type'] . "%";
                 $users = $users->where('type', 'LIKE', $string);
@@ -172,9 +174,12 @@ class UserController extends Controller
     {
         try {
             $user = auth('api')->user();
-            $users = $this->user->where('enterprise_id', $user->enterprise_id)->where('id', '!=', $user->id)->orderBy('id')->get();
+            $users = $this->user
+                ->where('enterprise_id', $user->enterprise_id)
+                ->where('id', '!=', $user->id)
+                ->orderBy('id');
 
-            return response()->json($users, 200);
+            return response()->json($users->get(), 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
