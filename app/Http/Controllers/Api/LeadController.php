@@ -157,7 +157,11 @@ class LeadController extends Controller
             $request['contact'] = mb_strtolower($request['contact'], 'UTF-8');
             $data = $request->all();
             $leads = $this->lead->with('user');
+            $user = auth('api')->user();
 
+            if ($user->type == "atendente") {
+                $leads = $this->lead->where('user_id', $user->id);
+            }
             if (isset($data['name']) && $data['name'] != '') {
                 $string = "%" . $data['name'] . "%";
                 $leads = $leads->where('name', 'LIKE', $string);
