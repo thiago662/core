@@ -178,7 +178,7 @@ class LeadController extends Controller
                 $leads = $leads->where('user_id', $data['user_id']);
             }
 
-            return response()->json($leads->orderBy('id')->get(), 200);
+            return response()->json($leads->orderBy('status')->get(), 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 

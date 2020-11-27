@@ -24,19 +24,22 @@ RODAR O PROJETO
 1 - Baixar a pasta vendor com todas as dependencias
     `composer update`
 
-2 - Cria o arquivo .env copiando o .env.exemple
+2 - Downgrade no pacote jwt para a versão mais estavel
+    `composer require lcobucci/jwt:3.3.3`
+
+3 - Cria o arquivo .env copiando o .env.exemple
     windows: `copy .env.example .env`
     mac: `cp .env.example .env`
 
-3 - Gera uma chave para o projeto
+4 - Gera uma chave para o projeto
     `php artisan key:generate`
 
-4 - Gera uma chave para o jwt
+5 - Gera uma chave para o jwt
     `php artisan jwt:secret`
 
-5 - criar o banco fw no postgres ou sql
+6 - criar o banco fw no postgres ou sql
 
-5 - Alterações para serem feitas no .env
+7 - Alterações para serem feitas no .env
     `DB_CONNECTION=pgsql` ou `DB_CONNECTION=mysql`,
     `DB_HOST=127.0.0.1`,
     `DB_PORT=5432` ou `DB_PORT=3306`,
