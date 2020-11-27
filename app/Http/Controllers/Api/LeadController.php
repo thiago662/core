@@ -26,7 +26,7 @@ class LeadController extends Controller
         $leads = $this->lead->with('user')->where('enterprise_id', $user->enterprise_id);
 
         if ($user->type == "atendente") {
-            $leads = $this->lead->where('user_id', $user->id);
+            $leads = $leads->where('user_id', $user->id);
         }
 
         return response()->json($leads->orderBy('status')->get(), 200);
@@ -160,7 +160,7 @@ class LeadController extends Controller
             $user = auth('api')->user();
 
             if ($user->type == "atendente") {
-                $leads = $this->lead->where('user_id', $user->id);
+                $leads = $leads->where('user_id', $user->id);
             }
             if (isset($data['name']) && $data['name'] != '') {
                 $string = "%" . $data['name'] . "%";

@@ -145,8 +145,9 @@ class UserController extends Controller
             $request['email'] = mb_strtolower($request['email'], 'UTF-8');
             $request['type'] = mb_strtolower($request['type'], 'UTF-8');
             $data = $request;
+            $user = auth('api')->user();
             $string = "";
-            $users = $this->user;
+            $users = $this->user->where('enterprise_id', $user->enterprise_id);
 
             if (isset($data['name']) && $data['name'] != '') {
                 $string = "%" . $data['name'] . "%";
