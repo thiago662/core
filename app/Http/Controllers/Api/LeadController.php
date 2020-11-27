@@ -156,8 +156,8 @@ class LeadController extends Controller
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
             $request['contact'] = mb_strtolower($request['contact'], 'UTF-8');
             $data = $request->all();
-            $leads = $this->lead->with('user');
             $user = auth('api')->user();
+            $leads = $this->lead->with('user')->where('enterprise_id', $user->enterprise_id);
 
             if ($user->type == "atendente") {
                 $leads = $leads->where('user_id', $user->id);
