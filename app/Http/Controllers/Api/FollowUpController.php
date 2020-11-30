@@ -136,4 +136,20 @@ class FollowUpController extends Controller
             return response()->json($message->getMessage(), 401);
         }
     }
+
+    public function showId($id)
+    {
+        try {
+            $user = auth('api')->user();
+            $lead = Lead::where('enterprise_id', $user->enterprise_id)->findOrFail($id);
+
+            $followUps = FollowUp::where('lead_id', $lead->id)->where('type','vendido');
+
+            return response()->json($followUps->get(), 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
+        }
+    }
 }

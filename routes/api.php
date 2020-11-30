@@ -78,14 +78,17 @@ Route::prefix('v1')->group(function () {
     
         });
     
-        // FolllowUps = store, show;
+        // FolllowUps = store, show, update;
         // middleware = ;
         Route::name('followups.')->group(function () {
 
             Route::apiResource('followups', FollowUpController::class)->only([
-                'store','show'
+                'store','show','update'
             ]);
-    
+
+            // show by id
+            Route::get('followup/{id}', [FollowUpController::class, 'showId'])->name('followup.show');
+
         });
     
         // Dashboard = graphicLead, graphicOpen, graphicClose, graphicSale, ranking, leadsTotal, leadsOpen, leadsClose, leadsSales;
