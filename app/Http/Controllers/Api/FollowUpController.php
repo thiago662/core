@@ -144,8 +144,8 @@ class FollowUpController extends Controller
             $lead = Lead::where('enterprise_id', $user->enterprise_id)->findOrFail($id);
 
             $followUps = FollowUp::where('lead_id', $lead->id)->where('type','vendido');
-
-            return response()->json($followUps->get(), 200);
+            
+            return response()->json($followUps->first(), 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 

@@ -21,15 +21,22 @@ class LeadController extends Controller
 
     public function index()
     {
-        $user = auth('api')->user();
 
-        $leads = $this->lead->with('user')->where('enterprise_id', $user->enterprise_id);
+        try {
+            $user = auth('api')->user();
+    
+            $leads = $this->lead->with('user')->where('enterprise_id', $user->enterprise_id);
+    
+            if ($user->type == "atendente") {
+                $leads = $leads->where('user_id', $user->id);
+            }
+    
+            return response()->json($leads->orderBy('status')->get(), 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
 
-        if ($user->type == "atendente") {
-            $leads = $leads->where('user_id', $user->id);
+            return response()->json($message->getMessage(), 401);
         }
-
-        return response()->json($leads->orderBy('status')->get(), 200);
     }
 
     public function store(Request $request)
