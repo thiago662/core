@@ -23,9 +23,10 @@ class UserController extends Controller
     public function index()
     {
         try {
-            $enterprise_id = auth('api')->user()->enterprise_id;
+            $user = auth('api')->user();
             $users = $this->user
-                ->where('enterprise_id', $enterprise_id)
+                ->where('enterprise_id', $user->enterprise_id)
+                ->where('id', '!=', $user->id)
                 ->orderBy('id');
 
             return response()->json($users->get(), 200);
@@ -146,7 +147,6 @@ class UserController extends Controller
             $request['type'] = mb_strtolower($request['type'], 'UTF-8');
             $data = $request;
             $user = auth('api')->user();
-            $string = "";
             $users = $this->user->where('enterprise_id', $user->enterprise_id);
 
             if (isset($data['name']) && $data['name'] != '') {
@@ -176,7 +176,7 @@ class UserController extends Controller
             $user = auth('api')->user();
             $users = $this->user
                 ->where('enterprise_id', $user->enterprise_id)
-                ->where('id', '!=', $user->id)
+                ->where('type', '!=', 'administrador')
                 ->orderBy('id');
 
             return response()->json($users->get(), 200);

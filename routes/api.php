@@ -103,8 +103,6 @@ Route::prefix('v1')->group(function () {
 
             Route::post('dashboard/graphic/sale', [DashboardController::class, 'graphicSale'])->name('dashboard.graphic.sale');
 
-            Route::get('dashboard/ranking', [DashboardController::class, 'ranking'])->name('dashboard.ranking');
-
             Route::post('dashboard/total', [DashboardController::class, 'leadsTotal'])->name('dashboard.total');
 
             Route::post('dashboard/open', [DashboardController::class, 'leadsOpen'])->name('dashboard.open');
@@ -112,6 +110,10 @@ Route::prefix('v1')->group(function () {
             Route::post('dashboard/close', [DashboardController::class, 'leadsClose'])->name('dashboard.close');
 
             Route::post('dashboard/sales', [DashboardController::class, 'leadsSales'])->name('dashboard.sales');
+
+            Route::get('dashboard/ranking', [DashboardController::class, 'rankingLead'])->name('dashboard.ranking.user');
+
+            Route::get('dashboard/ranking/source', [DashboardController::class, 'rankingSource'])->name('dashboard.ranking.source');
     
         });
     

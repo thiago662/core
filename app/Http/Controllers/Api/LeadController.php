@@ -44,7 +44,8 @@ class LeadController extends Controller
         try {
             $request['name'] = mb_strtolower($request['name'], 'UTF-8');
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
-            $request['contact'] = mb_strtolower($request['contact'], 'UTF-8');
+            $request['phone'] = mb_strtolower($request['phone'], 'UTF-8');
+            $request['email'] = mb_strtolower($request['email'], 'UTF-8');
             $data = $request->all();
 
             $user = auth('api')->user();
@@ -62,7 +63,7 @@ class LeadController extends Controller
                     ->create(
                         [
                             'type' => $data['type'],
-                            'message' => "lead criado"
+                            'message' => $data['message']
                         ]
                     );
             } else if ($user->type == "administrador") {
@@ -72,7 +73,7 @@ class LeadController extends Controller
                     ->create(
                         [
                             'type' => $data['type'],
-                            'message' => "lead criado"
+                            'message' => $data['message']
                         ]
                     );
             }
@@ -115,7 +116,8 @@ class LeadController extends Controller
         try {
             $request['name'] = mb_strtolower($request['name'], 'UTF-8');
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
-            $request['contact'] = mb_strtolower($request['contact'], 'UTF-8');
+            $request['phone'] = mb_strtolower($request['phone'], 'UTF-8');
+            $request['email'] = mb_strtolower($request['email'], 'UTF-8');
             $data = $request->all();
 
             $this->lead
@@ -161,7 +163,8 @@ class LeadController extends Controller
         try {
             $request['name'] = mb_strtolower($request['name'], 'UTF-8');
             $request['source'] = mb_strtolower($request['source'], 'UTF-8');
-            $request['contact'] = mb_strtolower($request['contact'], 'UTF-8');
+            $request['phone'] = mb_strtolower($request['phone'], 'UTF-8');
+            $request['email'] = mb_strtolower($request['email'], 'UTF-8');
             $data = $request->all();
             $user = auth('api')->user();
             $leads = $this->lead->with('user')->where('enterprise_id', $user->enterprise_id);
@@ -173,13 +176,20 @@ class LeadController extends Controller
                 $string = "%" . $data['name'] . "%";
                 $leads = $leads->where('name', 'LIKE', $string);
             }
-            if (isset($data['contact']) && $data['contact'] != '') {
-                $string = "%" . $data['contact'] . "%";
-                $leads = $leads->where('contact', 'LIKE', $string);
+            if (isset($data['phone']) && $data['phone'] != '') {
+                $string = "%" . $data['phone'] . "%";
+                $leads = $leads->where('phone', 'LIKE', $string);
+            }
+            if (isset($data['email']) && $data['email'] != '') {
+                $string = "%" . $data['email'] . "%";
+                $leads = $leads->where('email', 'LIKE', $string);
             }
             if (isset($data['source']) && $data['source'] != '') {
                 $string = "%" . $data['source'] . "%";
                 $leads = $leads->where('source', 'LIKE', $string);
+            }
+            if (isset($data['status']) && $data['status'] != '') {
+                $leads = $leads->where('status', $data['status']);
             }
             if (isset($data['user_id']) && $data['user_id'] != '') {
                 $leads = $leads->where('user_id', $data['user_id']);

@@ -40,8 +40,9 @@ class FollowUpController extends Controller
                 unset($data['value']);
                 $this->followUp->create($data);
 
-                $lead = Lead::find($data['lead_id']);
-                if ($lead->status == 0) {
+                $lead = Lead::findOrFail($data['lead_id']);
+
+                if ($lead->status == 0 || $lead->status == 3) {
                     $lead->status = 1;
                     $lead->save();
                 }
@@ -51,6 +52,7 @@ class FollowUpController extends Controller
                 } else {
                     $data['created_at'] = date("Y-m-d H:i:s", strtotime('+12 hour', strtotime($data['created_at'])));
                 }
+
                 $data['message'] = "lead vendido";
                 $this->followUp->create($data);
 
@@ -143,8 +145,8 @@ class FollowUpController extends Controller
             $user = auth('api')->user();
             $lead = Lead::where('enterprise_id', $user->enterprise_id)->findOrFail($id);
 
-            $followUps = FollowUp::where('lead_id', $lead->id)->where('type','vendido');
-            
+            $followUps = FollowUp::where('lead_id', $lead->id)->where('type', 'vendido');
+
             return response()->json($followUps->first(), 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());

@@ -52,7 +52,8 @@ class AuthController extends Controller
 
         Validator::make($data, [
             'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:8'
+            'password' => 'required|string|min:8',
+            'password_confirmation' => 'required|string|min:8'
         ])->validate();
 
         if (!$request->has('password') || !$request->get('password')) {
@@ -62,16 +63,18 @@ class AuthController extends Controller
         }
 
         try {
-            Enterprise::create($data)
-                ->user()
-                ->create(
-                    [
-                        'name' => mb_strtolower($data['name_user'], 'UTF-8'),
-                        'email' => mb_strtolower($data['email'], 'UTF-8'),
-                        'password' => bcrypt($data['password']),
-                        'type' => "administrador"
-                    ]
-                );
+            if ($request['password'] == $request['password_confirmation']) {
+                Enterprise::create($data)
+                    ->user()
+                    ->create(
+                        [
+                            'name' => mb_strtolower($data['name_user'], 'UTF-8'),
+                            'email' => mb_strtolower($data['email'], 'UTF-8'),
+                            'password' => bcrypt($data['password']),
+                            'type' => "administrador"
+                        ]
+                    );
+            }
 
             return $this->login($request);
         } catch (\Exception $e) {
