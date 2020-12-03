@@ -18,6 +18,7 @@ class FollowUp extends Model
         'type',
         'message',
         'value',
+        'user_id',
         'lead_id',
         'created_at'
     ];
@@ -25,5 +26,10 @@ class FollowUp extends Model
     public function lead()
     {
         return $this->belongsTo(Lead::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

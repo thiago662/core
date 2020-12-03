@@ -54,6 +54,10 @@ class LeadController extends Controller
             $data['status'] = "0";
             $data['type'] = "criado";
 
+            if (isset($data['message']) && $data['message'] == '') {
+                $data['message'] = "Lead criado";
+            }
+
             if ($user->type == "atendente") {
                 $data['user_id'] = $user->id;
 
@@ -63,7 +67,8 @@ class LeadController extends Controller
                     ->create(
                         [
                             'type' => $data['type'],
-                            'message' => $data['message']
+                            'message' => $data['message'],
+                            'user_id' => $user->id
                         ]
                     );
             } else if ($user->type == "administrador") {
@@ -73,7 +78,8 @@ class LeadController extends Controller
                     ->create(
                         [
                             'type' => $data['type'],
-                            'message' => $data['message']
+                            'message' => $data['message'],
+                            'user_id' => $user->id
                         ]
                     );
             }

@@ -34,6 +34,7 @@ class FollowUpController extends Controller
     {
         try {
             $data = $request->all();
+            $data['user_id'] = auth('api')->user()->id;
 
             if (isset($data['type']) && $data['type'] == "anotado") {
                 unset($data['created_at']);
@@ -87,7 +88,7 @@ class FollowUpController extends Controller
             $user = auth('api')->user();
             $lead = Lead::where('enterprise_id', $user->enterprise_id)->findOrFail($id);
 
-            $followUp = $this->followUp->where('lead_id', $lead->id)->orderBy('id', 'DESC')->get();
+            $followUp = $this->followUp->with('user')->where('lead_id', $lead->id)->orderBy('id', 'DESC')->get();
 
             if ($user->type == "administrador" || ($user->type == "atendente" && $user->id == $lead->user_id)) {
                 return response()->json($followUp, 200);

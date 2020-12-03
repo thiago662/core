@@ -19,7 +19,7 @@ class CreateLeadsTable extends Migration
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->string('source');
-            $table->text('interest')->nullable();
+            $table->text('interest');
             $table->string('status');
             $table->foreignId('user_id');
             $table->foreignId('enterprise_id');
