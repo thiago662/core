@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    public $func;
+
+    public function __construct()
+    {
+        $this->func = new functions();
+    }
+
     // retorna a quantidade de leads total
     public function leadsTotal(Request $request, Lead $lead)
     {
@@ -20,10 +27,8 @@ class DashboardController extends Controller
             $data = $request->all();
 
             $user = auth('api')->user();
-            $func = new functions();
 
-            $leads = $func->filter($data, $lead, $user->enterprise_id);
-            $leads = $func->authorization($user, $leads);
+            $leads = $this->func->filter($data, $lead, $user);
 
             return response()->json($leads->get()->count(), 200);
         } catch (\Exception $e) {
@@ -41,11 +46,9 @@ class DashboardController extends Controller
             $data = $request->all();
 
             $user = auth('api')->user();
-            $func = new functions();
 
-            $leads = $func->filter($data, $lead, $user->enterprise_id);
+            $leads = $this->func->filter($data, $lead, $user);
             $leads = $leads->where('status', '0');
-            $leads = $func->authorization($user, $leads);
 
             return response()->json($leads->get()->count(), 200);
         } catch (\Exception $e) {
@@ -63,13 +66,11 @@ class DashboardController extends Controller
             $data = $request->all();
 
             $user = auth('api')->user();
-            $func = new functions();
 
             $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
                 ->where('follow_ups.type', 'n_vendido')
                 ->where('leads.status', '3');
-            $leads = $func->authorization($user, $leads);
-            $leads = $func->filter($data, $leads, $user->enterprise_id);
+            $leads = $this->func->filter($data, $leads, $user);
 
             return response()->json($leads->get()->count(), 200);
         } catch (\Exception $e) {
@@ -87,13 +88,11 @@ class DashboardController extends Controller
             $data = $request->all();
 
             $user = auth('api')->user();
-            $func = new functions();
 
             $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
                 ->where('follow_ups.type', 'vendido')
                 ->where('leads.status', '2');
-            $leads = $func->authorization($user, $leads);
-            $leads = $func->filter($data, $leads, $user->enterprise_id);
+            $leads = $this->func->filter($data, $leads, $user);
 
             return response()->json($leads->get()->count(), 200);
         } catch (\Exception $e) {
@@ -111,13 +110,12 @@ class DashboardController extends Controller
             $data = $request->all();
 
             $user = auth('api')->user();
-            $func = new functions();
 
-            $leads = $func->filter($data, $lead, $user->enterprise_id);
+            $leads = $this->func->filter($data, $lead, $user);
             $leads = $leads->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
                 ->groupBy('date')
                 ->get();
-            $graphic = $func->graphic($leads);
+            $graphic = $this->func->graphic($leads);
 
             return response()->json($graphic, 200);
         } catch (\Exception $e) {
@@ -135,14 +133,13 @@ class DashboardController extends Controller
             $data = $request->all();
 
             $user = auth('api')->user();
-            $func = new functions();
 
-            $leads = $func->filter($data, $lead, $user->enterprise_id);
+            $leads = $this->func->filter($data, $lead, $user);
             $leads = $leads->where('status', '0')
                 ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as leads'))
                 ->groupBy('date')
                 ->get();
-            $graphic = $func->graphic($leads);
+            $graphic = $this->func->graphic($leads);
 
             return response()->json($graphic, 200);
         } catch (\Exception $e) {
@@ -160,16 +157,15 @@ class DashboardController extends Controller
             $data = $request->all();
 
             $user = auth('api')->user();
-            $func = new functions();
 
-            $leads = $func->filter($data, $lead, $user->enterprise_id);
+            $leads = $this->func->filter($data, $lead, $user);
             $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
                 ->where('follow_ups.type', 'n_vendido')
                 ->where('leads.status', '3')
                 ->select(DB::raw('DATE(follow_ups.created_at) as date'), DB::raw('count(*) as leads'))
                 ->groupBy('date')
                 ->get();
-            $graphic = $func->graphic($leads);
+            $graphic = $this->func->graphic($leads);
 
             return response()->json($graphic, 200);
         } catch (\Exception $e) {
@@ -187,16 +183,15 @@ class DashboardController extends Controller
             $data = $request->all();
 
             $user = auth('api')->user();
-            $func = new functions();
 
-            $leads = $func->filter($data, $lead, $user->enterprise_id);
+            $leads = $this->func->filter($data, $lead, $user);
             $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
                 ->where('follow_ups.type', 'vendido')
                 ->where('leads.status', '2')
                 ->select(DB::raw('DATE(follow_ups.created_at) as date'), DB::raw('count(*) as leads'))
                 ->groupBy('date')
                 ->get();
-            $graphic = $func->graphic($leads);
+            $graphic = $this->func->graphic($leads);
 
             return response()->json($graphic, 200);
         } catch (\Exception $e) {
@@ -239,22 +234,28 @@ class DashboardController extends Controller
     // retorna os ranking com o desempenho dos atendentes
     public function rankingSource()
     {
-        $user = auth('api')->user();
-        $rank = array();
-        $leads = LEAD::where('enterprise_id', $user->enterprise_id)
-            ->select('source')
-            ->groupBy('source')
-            ->get();
+        try {
+            $user = auth('api')->user();
+            $rank = array();
+            $leads = LEAD::where('enterprise_id', $user->enterprise_id)
+                ->select('source')
+                ->groupBy('source')
+                ->get();
 
-        foreach ($leads as $lead) {
-            $count = LEAD::where('enterprise_id', $user->enterprise_id)
-            ->where('source', $lead->source)
-            ->get()
-            ->count();
+            foreach ($leads as $lead) {
+                $count = LEAD::where('enterprise_id', $user->enterprise_id)
+                    ->where('source', $lead->source)
+                    ->get()
+                    ->count();
 
-            array_push($rank, array('source' => $lead->source, 'count' => $count));
+                array_push($rank, array('source' => $lead->source, 'count' => $count));
+            }
+
+            return response()->json($rank, 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
         }
-
-        return $rank;
     }
 }

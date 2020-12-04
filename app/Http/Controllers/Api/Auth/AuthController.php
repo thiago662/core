@@ -13,56 +13,74 @@ class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        $request['email'] = mb_strtolower($request['email'], 'UTF-8');
-        $credentials = $request->all(['email', 'password']);
+        try {
+            $request['email'] = mb_strtolower($request['email'], 'UTF-8');
+            $credentials = $request->all(['email', 'password']);
 
-        Validator::make($credentials, [
-            'email' => 'required|string',
-            'password' => 'required|string|min:8'
-        ])->validate();
+            Validator::make($credentials, [
+                'email' => 'required|string',
+                'password' => 'required|string|min:8'
+            ])->validate();
 
-        if (!$token = Auth::guard('api')->attempt($credentials)) {
-            $message = new ApiMessages('Unauthorized');
+            if (!$token = Auth::guard('api')->attempt($credentials)) {
+                $message = new ApiMessages('Unauthorized');
+
+                return response()->json($message->getMessage(), 401);
+            } else {
+
+                return $this->responseToken($token);
+            }
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
 
             return response()->json($message->getMessage(), 401);
-        } else {
-
-            return $this->responseToken($token);
         }
     }
 
     public function logout()
     {
-        Auth::guard('api')->logout();
+        try {
+            Auth::guard('api')->logout();
 
-        return response()->json(['message' => 'Logout successfully'], 200);
+            return response()->json(['message' => 'Logout successfully'], 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
+        }
     }
 
     public function refresh()
     {
-        $token = Auth::guard('api')->refresh();
+        try {
+            $token = Auth::guard('api')->refresh();
 
-        return $this->responseToken($token);
+            return $this->responseToken($token);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
+        }
     }
 
     public function signup(Request $request)
     {
-        $request['name'] = mb_strtolower($request['name'], 'UTF-8');
-        $data = $request->all();
-
-        Validator::make($data, [
-            'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:8',
-            'password_confirmation' => 'required|string|min:8'
-        ])->validate();
-
-        if (!$request->has('password') || !$request->get('password')) {
-            $message = new ApiMessages('You need to have a password');
-
-            return response()->json($message->getMessage(), 401);
-        }
-
         try {
+            $request['name'] = mb_strtolower($request['name'], 'UTF-8');
+            $data = $request->all();
+
+            Validator::make($data, [
+                'email' => 'required|email|unique:users',
+                'password' => 'required|string|min:8',
+                'password_confirmation' => 'required|string|min:8'
+            ])->validate();
+
+            if (!$request->has('password') || !$request->get('password')) {
+                $message = new ApiMessages('You need to have a password');
+
+                return response()->json($message->getMessage(), 401);
+            }
+
             if ($request['password'] == $request['password_confirmation']) {
                 Enterprise::create($data)
                     ->user()
@@ -74,9 +92,13 @@ class AuthController extends Controller
                             'type' => "administrador"
                         ]
                     );
-            }
 
-            return $this->login($request);
+                return response()->json([
+                    'data' => [
+                        'msg' => 'Signup with success'
+                    ]
+                ], 200);
+            }
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -87,11 +109,17 @@ class AuthController extends Controller
     //returno do token
     public function responseToken($token)
     {
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => Auth::guard('api')->factory()->getTTL() * 60,
-            'user' => Auth::guard('api')->user(),
-        ], 200);
+        try {
+            return response()->json([
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => Auth::guard('api')->factory()->getTTL() * 60,
+                'user' => Auth::guard('api')->user(),
+            ], 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
+        }
     }
 }

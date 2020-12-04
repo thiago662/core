@@ -24,13 +24,15 @@ class LeadController extends Controller
 
         try {
             $user = auth('api')->user();
-    
-            $leads = $this->lead->with('user')->where('enterprise_id', $user->enterprise_id);
-    
+
+            $leads = $this->lead
+                ->with('user')
+                ->where('enterprise_id', $user->enterprise_id);
+
             if ($user->type == "atendente") {
                 $leads = $leads->where('user_id', $user->id);
             }
-    
+
             return response()->json($leads->orderBy('status')->get(), 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
@@ -55,34 +57,22 @@ class LeadController extends Controller
             $data['type'] = "criado";
 
             if (!isset($data['message']) || $data['message'] == '') {
-                $data['message'] = "Lead criado";
+                $data['message'] = "lead criado";
             }
-
             if ($user->type == "atendente") {
                 $data['user_id'] = $user->id;
-
-                $this->lead
-                    ->create($data)
-                    ->followUp()
-                    ->create(
-                        [
-                            'type' => $data['type'],
-                            'message' => $data['message'],
-                            'user_id' => $user->id
-                        ]
-                    );
-            } else if ($user->type == "administrador") {
-                $this->lead
-                    ->create($data)
-                    ->followUp()
-                    ->create(
-                        [
-                            'type' => $data['type'],
-                            'message' => $data['message'],
-                            'user_id' => $user->id
-                        ]
-                    );
             }
+
+            $this->lead
+                ->create($data)
+                ->followUp()
+                ->create(
+                    [
+                        'type' => $data['type'],
+                        'message' => $data['message'],
+                        'user_id' => $user->id
+                    ]
+                );
 
             return response()->json([
                 'data' => [
@@ -105,9 +95,10 @@ class LeadController extends Controller
                 ->where('enterprise_id', $user->enterprise_id)
                 ->findOrFail($id);
 
-            if ($user->type == "administrador") {
-                return response()->json($lead, 200);
-            } else if ($user->type == "atendente" && $user->id == $lead->user_id) {
+            if (
+                $user->type == "administrador" ||
+                ($user->type == "atendente" && $user->id == $lead->user_id)
+            ) {
                 return response()->json($lead, 200);
             }
         } catch (\Exception $e) {
@@ -173,7 +164,10 @@ class LeadController extends Controller
             $request['email'] = mb_strtolower($request['email'], 'UTF-8');
             $data = $request->all();
             $user = auth('api')->user();
-            $leads = $this->lead->with('user')->where('enterprise_id', $user->enterprise_id);
+
+            $leads = $this->lead
+                ->with('user')
+                ->where('enterprise_id', $user->enterprise_id);
 
             if ($user->type == "atendente") {
                 $leads = $leads->where('user_id', $user->id);

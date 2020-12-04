@@ -35,39 +35,31 @@ class FollowUpController extends Controller
         try {
             $data = $request->all();
             $data['user_id'] = auth('api')->user()->id;
+            $lead = Lead::findOrFail($data['lead_id']);
+
+            if ($data['created_at'] == "") {
+                unset($data['created_at']);
+            } else {
+                $data['created_at'] = date("Y-m-d H:i:s", strtotime('+12 hour', strtotime($data['created_at'])));
+            }
 
             if (isset($data['type']) && $data['type'] == "anotado") {
-                unset($data['created_at']);
                 unset($data['value']);
                 $this->followUp->create($data);
 
-                $lead = Lead::findOrFail($data['lead_id']);
-
                 if ($lead->status == 0 || $lead->status == 3) {
-                    $lead->status = 1;
-                    $lead->save();
+                    $lead->update(['status' => 1]);
                 }
             } else if (isset($data['type']) && $data['type'] == "vendido") {
-                if ($data['created_at'] == "") {
-                    unset($data['created_at']);
-                } else {
-                    $data['created_at'] = date("Y-m-d H:i:s", strtotime('+12 hour', strtotime($data['created_at'])));
-                }
-
                 $data['message'] = "lead vendido";
                 $this->followUp->create($data);
 
-                $lead = Lead::find($data['lead_id']);
-                $lead->status = 2;
-                $lead->save();
+                $lead->update(['status' => 2]);
             } else if (isset($data['type']) && $data['type'] == "n_vendido") {
-                unset($data['created_at']);
                 unset($data['value']);
                 $this->followUp->create($data);
 
-                $lead = Lead::find($data['lead_id']);
-                $lead->status = 3;
-                $lead->save();
+                $lead->update(['status' => 3]);
             }
 
             return response()->json([
@@ -88,9 +80,16 @@ class FollowUpController extends Controller
             $user = auth('api')->user();
             $lead = Lead::where('enterprise_id', $user->enterprise_id)->findOrFail($id);
 
-            $followUp = $this->followUp->with('user')->where('lead_id', $lead->id)->orderBy('id', 'DESC')->get();
+            $followUp = $this->followUp
+                ->with('user')
+                ->where('lead_id', $lead->id)
+                ->orderBy('id', 'DESC')
+                ->get();
 
-            if ($user->type == "administrador" || ($user->type == "atendente" && $user->id == $lead->user_id)) {
+            if (
+                $user->type == "administrador" ||
+                ($user->type == "atendente" && $user->id == $lead->user_id)
+            ) {
                 return response()->json($followUp, 200);
             }
         } catch (\Exception $e) {

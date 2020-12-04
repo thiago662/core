@@ -38,7 +38,10 @@ class LogController extends Controller
         try {
             $user = auth('api')->user();
 
-            $leads = Lead::with('user')->onlyTrashed()->where('enterprise_id', $user->enterprise_id)->find($id);
+            $leads = Lead::with('user')
+                ->onlyTrashed()
+                ->where('enterprise_id', $user->enterprise_id)
+                ->find($id);
 
             return response()->json($leads, 200);
         } catch (\Exception $e) {

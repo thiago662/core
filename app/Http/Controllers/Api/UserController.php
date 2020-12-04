@@ -17,7 +17,13 @@ class UserController extends Controller
     public function __construct(User $user)
     {
         $this->user = $user;
-        $this->middleware('administrator')->only(['index', 'store', 'destroy', 'filter', 'clerks']);
+        $this->middleware('administrator')->only([
+            'index',
+            'store',
+            'destroy',
+            'filter',
+            'clerks'
+        ]);
     }
 
     public function index()
@@ -40,19 +46,18 @@ class UserController extends Controller
     public function store(UserRequest $request)
     {
         try {
+            $user = auth('api')->user();
             $request['name'] = mb_strtolower($request['name'], 'UTF-8');
             $request['email'] = mb_strtolower($request['email'], 'UTF-8');
             $data = $request->all();
+            $data['password'] = bcrypt($data['password']);
+            $data['enterprise_id'] = $user->enterprise_id;
 
             if (!$request->has('password') || !$request->get('password')) {
                 $message = new ApiMessages('You need to have a password');
 
                 return response()->json($message->getMessage(), 401);
             }
-
-            $data['password'] = bcrypt($data['password']);
-            $enterprise_id = auth('api')->user()->enterprise_id;
-            $data['enterprise_id'] = $enterprise_id;
             $this->user->create($data);
 
             return response()->json([
@@ -96,7 +101,10 @@ class UserController extends Controller
                 'type' => 'required'
             ])->validate();
 
-            if ($request->has('password') && $request->get('password')) {
+            if (
+                $request->has('password') && $request->get('password') ||
+                $request['password_confirmation'] == $request['password']
+            ) {
                 $data['password'] = bcrypt($data['password']);
             } else {
                 unset($data['password']);

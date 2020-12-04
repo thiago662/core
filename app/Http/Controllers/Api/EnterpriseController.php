@@ -24,10 +24,7 @@ class EnterpriseController extends Controller
             $user = auth('api')->user();
             $enterprise = $this->enterprise->findOrFail($user->enterprise_id);
 
-            return response()->json([
-                'enterprise' => $enterprise,
-                'user' => $user
-            ], 200);
+            return response()->json($enterprise, 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -47,17 +44,19 @@ class EnterpriseController extends Controller
                 return response()->json($message->getMessage(), 401);
             }
 
-            $this->enterprise
-                ->create($data)
-                ->user()
-                ->create(
-                    [
-                        'name' => mb_strtolower($data['name_user'], 'UTF-8'),
-                        'email' => mb_strtolower($data['email'], 'UTF-8'),
-                        'password' => bcrypt($data['password']),
-                        'type' => "administrador"
-                    ]
-                );
+            if ($request['password'] == $request['password_confirmation']) {
+                $this->enterprise
+                    ->create($data)
+                    ->user()
+                    ->create(
+                        [
+                            'name' => mb_strtolower($data['name_user'], 'UTF-8'),
+                            'email' => mb_strtolower($data['email'], 'UTF-8'),
+                            'password' => bcrypt($data['password']),
+                            'type' => "administrador"
+                        ]
+                    );
+            }
 
             return (new AuthController())->login($request);
         } catch (\Exception $e) {

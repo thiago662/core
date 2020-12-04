@@ -5,14 +5,11 @@ namespace App\Api;
 class functions
 {
     // função responsavel pelo filtro
-    public function filter($data, $leads, $enterprise)
+    public function filter($data, $leads, $user)
     {
-        $leads = $this->enterprise($leads, $enterprise);
-        $user = auth('api')->user();
+        $leads = $this->enterprise($leads, $user->enterprise_id);
+        $leads = $this->authorization($user, $leads);
 
-        if ($user->type == 'atendente') {
-            $leads = $leads->where('leads.user_id', $user->id);
-        }
         if (isset($data['user_id']) && $data['user_id'] != '') {
             $leads = $leads->where('leads.user_id', $data['user_id']);
         }
@@ -49,7 +46,7 @@ class functions
     public function authorization($user, $leads)
     {
         if ($user->type == 'atendente') {
-            $leads = $leads->where('user_id', $user->id);
+            $leads = $leads->where('leads.user_id', $user->id);
         }
 
         return $leads;
