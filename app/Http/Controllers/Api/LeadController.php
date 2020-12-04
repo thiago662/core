@@ -54,7 +54,7 @@ class LeadController extends Controller
             $data['status'] = "0";
             $data['type'] = "criado";
 
-            if (isset($data['message']) && $data['message'] == '') {
+            if (!isset($data['message']) || $data['message'] == '') {
                 $data['message'] = "Lead criado";
             }
 
