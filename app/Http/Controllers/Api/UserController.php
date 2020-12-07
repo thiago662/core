@@ -53,6 +53,11 @@ class UserController extends Controller
             $data['password'] = bcrypt($data['password']);
             $data['enterprise_id'] = $user->enterprise_id;
 
+            Validator::make($data, [
+                'email' => 'required|email|unique:users',
+                'password' => 'required|string|min:8'
+            ])->validate();
+
             if (!$request->has('password') || !$request->get('password')) {
                 $message = new ApiMessages('You need to have a password');
 
@@ -96,13 +101,11 @@ class UserController extends Controller
             $data = $request->all();
 
             Validator::make($data, [
-                'name' => 'required',
-                'email' => 'required|email|unique:users,email,' . $id . ',id',
-                'type' => 'required'
+                'email' => 'email|unique:users,email,' . $id . ',id',
             ])->validate();
 
             if (
-                $request->has('password') && $request->get('password') ||
+                $request->has('password') && $request->get('password') &&
                 $request['password_confirmation'] == $request['password']
             ) {
                 $data['password'] = bcrypt($data['password']);
@@ -129,11 +132,31 @@ class UserController extends Controller
     public function destroy($id)
     {
         try {
-            Lead::where('user_id', $id)->update(['user_id' => auth('api')->user()->id]);
+            $this->user
+                ->findOrFail($id)
+                ->update(['email' => ''])
+                ->delete();
+
+            return response()->json([
+                'data' => [
+                    'msg' => 'User deleted with success'
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            $message = new ApiMessages($e->getMessage());
+
+            return response()->json($message->getMessage(), 401);
+        }
+    }
+
+    public function deleteMove(Request $request, $id)
+    {
+        try {
+            Lead::where('user_id', $id)->update(['user_id' => $request['id']]);
 
             $this->user
                 ->findOrFail($id)
-                ->forceDelete();
+                ->delete();
 
             return response()->json([
                 'data' => [

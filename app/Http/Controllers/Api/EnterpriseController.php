@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Enterprise;
 use Illuminate\Http\Request;
 use App\http\Controllers\Api\Auth\AuthController;
+use Illuminate\Support\Facades\Validator;
 
 class EnterpriseController extends Controller
 {
@@ -37,6 +38,11 @@ class EnterpriseController extends Controller
         try {
             $request['name'] = mb_strtolower($request['name'], 'UTF-8');
             $data = $request->all();
+
+            Validator::make($data, [
+                'email' => 'required|email|unique:users',
+                'password' => 'required|string|min:8'
+            ])->validate();
 
             if (!$request->has('password') || !$request->get('password')) {
                 $message = new ApiMessages('You need to have a password');

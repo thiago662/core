@@ -56,6 +56,9 @@ Route::prefix('v1')->group(function () {
 
             Route::apiResource('users', UserController::class);
 
+            // exclui o usuario e move seus lide
+            Route::post('move/{id}', [UserController::class, 'deleteMove'])->name('users.move');
+
             // Filtro
             Route::post('users/filter', [UserController::class, 'filter'])->name('users.filter');
 
