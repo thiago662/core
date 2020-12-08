@@ -53,19 +53,15 @@ class UserController extends Controller
             $request['name'] = mb_strtolower($request['name'], 'UTF-8');
             $request['email'] = mb_strtolower($request['email'], 'UTF-8');
             $data = $request->all();
-            $data['password'] = bcrypt($data['password']);
-            $data['enterprise_id'] = $user->enterprise_id;
 
             Validator::make($data, [
                 'email' => 'required|email|unique:users',
                 'password' => 'required|string|min:8'
             ])->validate();
 
-            if (!$request->has('password') || !$request->get('password')) {
-                $message = new ApiMessages('You need to have a password');
+            $data['password'] = bcrypt($data['password']);
+            $data['enterprise_id'] = $user->enterprise_id;
 
-                return response()->json($message->getMessage(), 401);
-            }
             $this->user->create($data);
 
             return response()->json([
@@ -110,8 +106,8 @@ class UserController extends Controller
             ])->validate();
 
             if (
-                $request->has('password') && $request->get('password') &&
-                $request['password_confirmation'] == $request['password']
+                $request->has('password') && $request->has('password_confirmation') &&
+                $request->get('password') == $request->get('password_confirmation')
             ) {
                 $data['password'] = bcrypt($data['password']);
             } else {
@@ -139,7 +135,7 @@ class UserController extends Controller
         try {
             $this->user
                 ->findOrFail($id)
-                ->update(['email' => ''])
+                ->update(['email' => null])
                 ->delete();
 
             return response()->json([
@@ -188,17 +184,19 @@ class UserController extends Controller
             $request['type'] = mb_strtolower($request['type'], 'UTF-8');
             $data = $request;
             $user = auth('api')->user();
-            $users = $this->user->where('enterprise_id', $user->enterprise_id);
+            $users = $this->user
+                ->where('enterprise_id', $user->enterprise_id)
+                ->where('id', '!=', $user->id);
 
-            if (isset($data['name']) && $data['name'] != '') {
+            if ($data->has('name') && $data->get('name')) {
                 $string = "%" . $data['name'] . "%";
                 $users = $users->where('name', 'LIKE', $string);
             }
-            if (isset($data['email']) && $data['email'] != '') {
+            if ($data->has('email') && $data->get('email')) {
                 $string = "%" . $data['email'] . "%";
                 $users = $users->where('email', 'LIKE', $string);
             }
-            if (isset($data['type']) && $data['type'] != '') {
+            if ($data->has('type') && $data->get('type')) {
                 $string = "%" . $data['type'] . "%";
                 $users = $users->where('type', 'LIKE', $string);
             }

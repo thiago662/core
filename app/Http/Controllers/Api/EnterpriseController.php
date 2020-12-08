@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Enterprise;
 use Illuminate\Http\Request;
 use App\http\Controllers\Api\Auth\AuthController;
-use Illuminate\Support\Facades\Validator;
 
 class EnterpriseController extends Controller
 {

@@ -66,13 +66,11 @@ class LeadController extends Controller
             $this->lead
                 ->create($data)
                 ->followUp()
-                ->create(
-                    [
-                        'type' => $data['type'],
-                        'message' => $data['message'],
-                        'user_id' => $user->id
-                    ]
-                );
+                ->create([
+                    'type' => $data['type'],
+                    'message' => $data['message'],
+                    'user_id' => $user->id
+                ]);
 
             return response()->json([
                 'data' => [

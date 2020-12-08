@@ -75,23 +75,18 @@ class AuthController extends Controller
                 'password_confirmation' => 'required|string|min:8'
             ])->validate();
 
-            if (!$request->has('password') || !$request->get('password')) {
-                $message = new ApiMessages('You need to have a password');
-
-                return response()->json($message->getMessage(), 401);
-            }
-
-            if ($request['password'] == $request['password_confirmation']) {
+            if (
+                $request->has('password') && $request->has('password_confirmation') &&
+                $request->get('password') == $request->get('password_confirmation')
+            ) {
                 Enterprise::create($data)
                     ->user()
-                    ->create(
-                        [
-                            'name' => mb_strtolower($data['name_user'], 'UTF-8'),
-                            'email' => mb_strtolower($data['email'], 'UTF-8'),
-                            'password' => bcrypt($data['password']),
-                            'type' => "administrador"
-                        ]
-                    );
+                    ->create([
+                        'name' => mb_strtolower($data['name_user'], 'UTF-8'),
+                        'email' => mb_strtolower($data['email'], 'UTF-8'),
+                        'password' => bcrypt($data['password']),
+                        'type' => "administrador"
+                    ]);
 
                 return response()->json([
                     'data' => [
