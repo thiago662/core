@@ -39,30 +39,7 @@ class EnterpriseController extends Controller
             $request['name'] = mb_strtolower($request['name'], 'UTF-8');
             $data = $request->all();
 
-            Validator::make($data, [
-                'email' => 'required|email|unique:users',
-                'password' => 'required|string|min:8'
-            ])->validate();
-
-            if (!$request->has('password') || !$request->get('password')) {
-                $message = new ApiMessages('You need to have a password');
-
-                return response()->json($message->getMessage(), 401);
-            }
-
-            if ($request['password'] == $request['password_confirmation']) {
-                $this->enterprise
-                    ->create($data)
-                    ->user()
-                    ->create(
-                        [
-                            'name' => mb_strtolower($data['name_user'], 'UTF-8'),
-                            'email' => mb_strtolower($data['email'], 'UTF-8'),
-                            'password' => bcrypt($data['password']),
-                            'type' => "administrador"
-                        ]
-                    );
-            }
+            $this->enterprise->create($data);
 
             return (new AuthController())->login($request);
         } catch (\Exception $e) {

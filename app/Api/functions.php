@@ -10,18 +10,35 @@ class functions
         $leads = $this->enterprise($leads, $user->enterprise_id);
         $leads = $this->authorization($user, $leads);
 
+        // busca por usuario
         if (isset($data['user_id']) && $data['user_id'] != '') {
             $leads = $leads->where('leads.user_id', $data['user_id']);
         }
+
+        // busca por status
         if (isset($data['status']) && $data['status'] != '') {
             $leads = $leads->where('status', $data['status']);
         }
+
+        // busca por ano
         if (isset($data['year']) && $data['year'] != '') {
             $leads = $leads->whereYear('leads.created_at', $data['year']);
+        } else {
+            $leads = $leads->whereYear('leads.created_at', date('Y'));
         }
+
+        // busca por mes
         if (isset($data['month']) && $data['month'] != '') {
             $leads = $leads->whereMonth('leads.created_at', $data['month']);
+        } else if (
+            (!isset($data['month']) || $data['month'] == '') &&
+            (isset($data['year']) && $data['year'] != '')
+        ) {
+        } else {
+            $leads = $leads->whereMonth('leads.created_at', date('m'));
         }
+
+        // busca por origem
         if (isset($data['source']) && $data['source'] != '') {
             $string = "%" . $data['source'] . "%";
             $leads = $leads->where('leads.source', 'LIKE', $string);
@@ -58,5 +75,15 @@ class functions
         $leads = $lead->where('enterprise_id', $enterprise);
 
         return $leads;
+    }
+
+    // verifica
+    public function admin($user)
+    {
+        if ($user->type == "administrador") {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

@@ -6,16 +6,19 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Api\ApiMessages;
+use App\Api\functions;
 use App\Http\Requests\UserRequest;
 use App\Models\Lead;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
+    public $func;
     private $user;
 
     public function __construct(User $user)
     {
+        $this->func = new functions();
         $this->user = $user;
         $this->middleware('administrator')->only([
             'index',
@@ -80,12 +83,14 @@ class UserController extends Controller
     public function show($id)
     {
         try {
-            $enterprise_id = auth('api')->user()->enterprise_id;
-            $user = $this->user
-                ->where('enterprise_id', $enterprise_id)
-                ->findOrFail($id);
+            $user = auth('api')->user();
+            if ($this->func->admin($user)) {
+                $users = $this->user
+                    ->where('enterprise_id', $user->enterprise_id)
+                    ->findOrFail($id);
 
-            return response()->json($user, 200);
+                return response()->json($users, 200);
+            }
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -152,8 +157,13 @@ class UserController extends Controller
     public function deleteMove(Request $request, $id)
     {
         try {
-            Lead::where('user_id', $id)->update(['user_id' => $request['id']]);
+            Lead::where('user_id', $id)
+                ->whereIn('status', [0, 1])
+                ->update(['user_id' => $request['id']]);
 
+            $this->user
+                ->findOrFail($id)
+                ->update(['email' => null]);
             $this->user
                 ->findOrFail($id)
                 ->delete();
