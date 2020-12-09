@@ -83,9 +83,11 @@ class UserController extends Controller
             if ($this->func->admin($user)) {
                 $users = $this->user
                     ->where('enterprise_id', $user->enterprise_id)
-                    ->findOrFail($id);
+                    ->find($id);
 
-                return response()->json($users, 200);
+                if ($users != []) {
+                    return response()->json($users, 200);
+                }
             }
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());

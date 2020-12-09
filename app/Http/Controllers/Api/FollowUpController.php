@@ -78,18 +78,20 @@ class FollowUpController extends Controller
     {
         try {
             $user = auth('api')->user();
-            $lead = Lead::where('enterprise_id', $user->enterprise_id)->findOrFail($id);
-
-            $followUp = $this->followUp
-                ->with('user')
-                ->where('lead_id', $lead->id)
-                ->orderBy('id', 'DESC')
-                ->get();
+            $lead = Lead::where('enterprise_id', $user->enterprise_id)->find($id);
 
             if (
-                $user->type == "administrador" ||
-                ($user->type == "atendente" && $user->id == $lead->user_id)
+                isset($lead) &&
+                $user->enterprise_id == $lead->enterprise_id &&
+                ($user->type == "administrador" || ($user->type == "atendente" &&
+                    isset($lead) && $user->id == $lead->user_id))
             ) {
+                $followUp = $this->followUp
+                    ->with('user')
+                    ->where('lead_id', $lead->id)
+                    ->orderBy('id', 'DESC')
+                    ->get();
+
                 return response()->json($followUp, 200);
             }
         } catch (\Exception $e) {

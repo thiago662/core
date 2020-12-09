@@ -91,11 +91,13 @@ class LeadController extends Controller
             $lead = $this->lead
                 ->with(['followUp', 'user'])
                 ->where('enterprise_id', $user->enterprise_id)
-                ->findOrFail($id);
+                ->find($id);
 
             if (
-                $user->type == "administrador" ||
-                ($user->type == "atendente" && $user->id == $lead->user_id)
+                isset($lead) &&
+                $user->enterprise_id == $lead->enterprise_id &&
+                ($user->type == "administrador" || ($user->type == "atendente" &&
+                    isset($lead) && $user->id == $lead->user_id))
             ) {
                 return response()->json($lead, 200);
             }
