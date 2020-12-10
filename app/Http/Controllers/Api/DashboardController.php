@@ -218,7 +218,7 @@ class DashboardController extends Controller
                     ->get()
                     ->count();
 
-                array_push($rank, array('id' => $user->id, 'user' => $user->name, 'leads' => $leads, 'sales' => $sales, 'taxa' => ($sales*1.1)+($leads*0.1)));
+                array_push($rank, array('id' => $user->id, 'user' => $user->name, 'leads' => $leads, 'sales' => $sales, 'rate' => ($sales*1.1)+($leads*0.1)));
             }
             $help = array_column($rank, 'sales');
             array_multisort($help, SORT_DESC, $rank);
