@@ -40,7 +40,13 @@ class FollowUpController extends Controller
             if ($data['created_at'] == "") {
                 unset($data['created_at']);
             } else {
-                $data['created_at'] = date("Y-m-d H:i:s", strtotime('+12 hour', strtotime($data['created_at'])));
+                $data['created_at'] = date(
+                    "Y-m-d H:i:s",
+                    strtotime(
+                        '+12 hour',
+                        strtotime($data['created_at'])
+                    )
+                );
             }
 
             if (isset($data['type']) && $data['type'] == "anotado") {
@@ -145,9 +151,11 @@ class FollowUpController extends Controller
     {
         try {
             $user = auth('api')->user();
-            $lead = Lead::where('enterprise_id', $user->enterprise_id)->findOrFail($id);
+            $lead = Lead::where('enterprise_id', $user->enterprise_id)
+                ->findOrFail($id);
 
-            $followUps = FollowUp::where('lead_id', $lead->id)->where('type', 'vendido');
+            $followUps = FollowUp::where('lead_id', $lead->id)
+                ->where('type', 'vendido');
 
             return response()->json($followUps->first(), 200);
         } catch (\Exception $e) {

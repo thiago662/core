@@ -62,7 +62,8 @@ class LogController extends Controller
                 ->find($id)
                 ->restore();
 
-            FollowUp::onlyTrashed()->join('leads', 'leads.id', '=', 'follow_ups.lead_id')
+            FollowUp::onlyTrashed()
+                ->join('leads', 'leads.id', '=', 'follow_ups.lead_id')
                 ->where('leads.enterprise_id', $user->enterprise_id)
                 ->where('lead_id', $id)
                 ->restore();
