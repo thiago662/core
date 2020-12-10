@@ -250,6 +250,8 @@ class DashboardController extends Controller
 
                 array_push($rank, array('source' => $lead->source, 'count' => $count));
             }
+            $help = array_column($rank, 'count');
+            array_multisort($help, SORT_DESC, $rank);
 
             return response()->json($rank, 200);
         } catch (\Exception $e) {
