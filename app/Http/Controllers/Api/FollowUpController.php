@@ -43,7 +43,7 @@ class FollowUpController extends Controller
                 $data['created_at'] = date(
                     "Y-m-d H:i:s",
                     strtotime(
-                        '+12 hour',
+                        date("H:i:s"),
                         strtotime($data['created_at'])
                     )
                 );
@@ -56,6 +56,9 @@ class FollowUpController extends Controller
                 if ($lead->status == 0 || $lead->status == 3) {
                     $lead->update(['status' => 1]);
                 }
+            } else if (isset($data['type']) && $data['type'] == "adm_anotado") {
+                unset($data['value']);
+                $this->followUp->create($data);
             } else if (isset($data['type']) && $data['type'] == "vendido") {
                 $data['message'] = "lead vendido";
                 $this->followUp->create($data);
