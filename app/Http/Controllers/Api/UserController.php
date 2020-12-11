@@ -112,8 +112,12 @@ class UserController extends Controller
                 $request->get('password') == $request->get('password_confirmation')
             ) {
                 $data['password'] = bcrypt($data['password']);
-            } else {
+            } else if (!$request->has('password') && !$request->has('password_confirmation')) {
                 unset($data['password']);
+            } else {
+                $message = new ApiMessages('password anauthorized');
+    
+                return response()->json($message->getMessage(), 401);
             }
 
             $this->user
