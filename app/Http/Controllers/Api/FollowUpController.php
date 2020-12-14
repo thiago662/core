@@ -60,10 +60,14 @@ class FollowUpController extends Controller
                 unset($data['value']);
                 $this->followUp->create($data);
             } else if (isset($data['type']) && $data['type'] == "vendido") {
-                $data['message'] = "lead vendido";
-                $this->followUp->create($data);
+                if ($lead->status == '2') {
+                    return response()->json('Lead already saled', 401);
+                } else {
+                    $data['message'] = "lead vendido";
+                    $this->followUp->create($data);
 
-                $lead->update(['status' => 2]);
+                    $lead->update(['status' => 2]);
+                }
             } else if (isset($data['type']) && $data['type'] == "n_vendido") {
                 unset($data['value']);
                 $this->followUp->create($data);
@@ -155,12 +159,14 @@ class FollowUpController extends Controller
         try {
             $user = auth('api')->user();
             $lead = Lead::where('enterprise_id', $user->enterprise_id)
-                ->findOrFail($id);
+                ->find($id);
 
-            $followUps = FollowUp::where('lead_id', $lead->id)
-                ->where('type', 'vendido');
+            if (isset($lead->status) && $lead->status == 2) {
+                $followUps = FollowUp::where('lead_id', $lead->id)
+                    ->where('type', 'vendido');
 
-            return response()->json($followUps->first(), 200);
+                return response()->json($followUps->first(), 200);
+            }
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 

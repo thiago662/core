@@ -72,7 +72,7 @@ class DashboardController extends Controller
                 ->where('leads.status', '3');
             $leads = $this->func->filter($data, $leads, $user);
 
-            return response()->json($leads->get()->count(), 200);
+            return response()->json($leads->distinct('follow_ups.lead_id')->get()->count(), 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -162,7 +162,7 @@ class DashboardController extends Controller
             $leads = $leads->join('follow_ups', 'leads.id', '=', 'follow_ups.lead_id')
                 ->where('follow_ups.type', 'n_vendido')
                 ->where('leads.status', '3')
-                ->select(DB::raw('DATE(follow_ups.created_at) as date'), DB::raw('count(*) as leads'))
+                ->select(DB::raw("DATE(follow_ups.created_at) as date"), DB::raw('COUNT(DISTINCT follow_ups.lead_id) as leads'))
                 ->groupBy('date')
                 ->get();
             $graphic = $this->func->graphic($leads);
@@ -218,7 +218,7 @@ class DashboardController extends Controller
                     ->get()
                     ->count();
 
-                array_push($rank, array('id' => $user->id, 'user' => $user->name, 'leads' => $leads, 'sales' => $sales, 'rate' => ($sales*1.1)+($leads*0.1)));
+                array_push($rank, array('id' => $user->id, 'user' => $user->name, 'leads' => $leads, 'sales' => $sales, 'rate' => ($sales * 1.1) + ($leads * 0.1)));
             }
             $help = array_column($rank, 'sales');
             array_multisort($help, SORT_DESC, $rank);
