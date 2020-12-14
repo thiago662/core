@@ -206,7 +206,7 @@ class DashboardController extends Controller
     {
         try {
             $enterprise = auth('api')->user()->enterprise_id;
-            $rank = array();
+            $rank = [];
             $users = User::where('enterprise_id', $enterprise)->where('type', '!=', 'administrador')->get();
 
             foreach ($users as $user) {
@@ -218,7 +218,7 @@ class DashboardController extends Controller
                     ->get()
                     ->count();
 
-                array_push($rank, array('id' => $user->id, 'user' => $user->name, 'leads' => $leads, 'sales' => $sales, 'rate' => ($sales * 1.1) + ($leads * 0.1)));
+                array_push($rank, ['id' => $user->id, 'user' => $user->name, 'leads' => $leads, 'sales' => $sales, 'rate' => ($sales * 1.1) + ($leads * 0.1)]);
             }
             $help = array_column($rank, 'sales');
             array_multisort($help, SORT_DESC, $rank);
@@ -236,22 +236,12 @@ class DashboardController extends Controller
     {
         try {
             $user = auth('api')->user();
-            $rank = array();
-            $leads = LEAD::where('enterprise_id', $user->enterprise_id)
-                ->select('source')
+
+            $rank = LEAD::where('enterprise_id', $user->enterprise_id)
+                ->select('source', DB::raw('COUNT(source) as count'))
                 ->groupBy('source')
+                ->orderBy('count', 'DESC')
                 ->get();
-
-            foreach ($leads as $lead) {
-                $count = LEAD::where('enterprise_id', $user->enterprise_id)
-                    ->where('source', $lead->source)
-                    ->get()
-                    ->count();
-
-                array_push($rank, array('source' => $lead->source, 'count' => $count));
-            }
-            $help = array_column($rank, 'count');
-            array_multisort($help, SORT_DESC, $rank);
 
             return response()->json($rank, 200);
         } catch (\Exception $e) {

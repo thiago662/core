@@ -69,10 +69,16 @@ class FollowUpController extends Controller
                     $lead->update(['status' => 2]);
                 }
             } else if (isset($data['type']) && $data['type'] == "n_vendido") {
-                unset($data['value']);
-                $this->followUp->create($data);
+                if ($lead->status == '2') {
+                    return response()->json('Lead already saled', 401);
+                } else {
+                    unset($data['value']);
+                    $data['message'] = "lead não vendido";
 
-                $lead->update(['status' => 3]);
+                    $this->followUp->create($data);
+
+                    $lead->update(['status' => 3]);
+                }
             }
 
             return response()->json([
