@@ -25,10 +25,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// prefixo de versionamento da api
 Route::prefix('v1')->group(function () {
-    
-    // rotas para interações iniciais
+
     Route::post('signup', [AuthController::class, 'signup'])->name('signup');
 
     Route::post('login', [AuthController::class, 'login'])->name('login');
@@ -37,9 +35,8 @@ Route::prefix('v1')->group(function () {
 
     Route::get('refresh', [AuthController::class, 'refresh'])->name('refresh');
 
-    // Middleware de autendificação com jwt
     Route::group(['middleware' => ['jwt.auth']], function () {
-    
+
         // Enterprises = index, store, show, update, destroy;
         // middleware = index, store, show, update, destroy;
         Route::name('enterprises.')->group(function () {
@@ -47,9 +44,8 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('enterprises', EnterpriseController::class)->except([
                 'store'
             ]);
-    
         });
-    
+
         // Users = index, store, show, update, destroy;
         // middleware = index, store, destroy;
         Route::name('users.')->group(function () {
@@ -67,9 +63,8 @@ Route::prefix('v1')->group(function () {
 
             // Retornar seu perfil
             Route::get('profile', [UserController::class, 'profile'])->name('users.profile');
-    
         });
-    
+
         // Leads = index, store, show, update, destroy;
         // middleware = index;
         Route::name('leads.')->group(function () {
@@ -78,22 +73,20 @@ Route::prefix('v1')->group(function () {
 
             // Filtro
             Route::post('leads/filter', [LeadController::class, 'filter'])->name('leads.filter');
-    
         });
-    
+
         // FolllowUps = store, show, update;
         // middleware = ;
         Route::name('followups.')->group(function () {
 
             Route::apiResource('followups', FollowUpController::class)->only([
-                'store','show','update'
+                'store', 'show', 'update'
             ]);
 
             // show by id
             Route::get('followup/{id}', [FollowUpController::class, 'showId'])->name('followup.show');
-
         });
-    
+
         // Dashboard = graphicLead, graphicOpen, graphicClose, graphicSale, ranking, leadsTotal, leadsOpen, leadsClose, leadsSales;
         // middleware = ;
         Route::name('dashboard.')->group(function () {
@@ -117,9 +110,8 @@ Route::prefix('v1')->group(function () {
             Route::get('dashboard/ranking', [DashboardController::class, 'rankingLead'])->name('dashboard.ranking.user');
 
             Route::get('dashboard/ranking/source', [DashboardController::class, 'rankingSource'])->name('dashboard.ranking.source');
-    
         });
-    
+
         // FolllowUps = index, destroy, update, show,;
         // middleware = store;
         Route::name('log.')->group(function () {
@@ -129,9 +121,6 @@ Route::prefix('v1')->group(function () {
             ]);
 
             Route::delete('log/leads', [LogController::class, 'destroyAll'])->name('log.leads.destroy.all');
-
         });
-
     });
-
 });

@@ -3,9 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 
-class UserRequest extends FormRequest
+class SignupRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,10 +25,10 @@ class UserRequest extends FormRequest
     {
         return [
             'name' => 'required',
+            'name_user' => 'required',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:8',
-            'password_confirmation' => 'nullable|min:8|same:password',
-            'type' => 'required'
+            'password' => 'required|string|min:8',
+            'password_confirmation' => 'required|min:8|same:password'
         ];
     }
 }

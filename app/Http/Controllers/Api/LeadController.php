@@ -3,33 +3,31 @@
 namespace App\Http\Controllers\Api;
 
 use App\Api\ApiMessages;
+
+use App\Dictionaries\UserDictionary;
+use App\Dictionaries\LeadDictionary;
+use App\Dictionaries\FollowUpDictionary;
 use App\Http\Controllers\Controller;
 use App\Models\FollowUp;
 use App\Models\Lead;
-use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class LeadController extends Controller
 {
-    private $lead;
-
-    public function __construct(Lead $lead)
+    public function __construct()
     {
-        $this->lead = $lead;
     }
 
     public function index()
     {
-
         try {
             $user = auth('api')->user();
 
-            $leads = $this->lead
-                ->with('user')
+            $leads = Lead::with('user', 'followup')
                 ->where('enterprise_id', $user->enterprise_id);
 
-            if ($user->type == "atendente") {
+            if ($user->type == UserDictionary::CLERK) {
                 $leads = $leads->where('user_id', $user->id);
             }
 
@@ -44,33 +42,29 @@ class LeadController extends Controller
     public function store(Request $request)
     {
         try {
-            $request['name'] = mb_strtolower($request['name'], 'UTF-8');
-            $request['source'] = mb_strtolower($request['source'], 'UTF-8');
-            $request['phone'] = mb_strtolower($request['phone'], 'UTF-8');
-            $request['email'] = mb_strtolower($request['email'], 'UTF-8');
-            $data = $request->all();
+            $request['email'] = Str::lower($request['email']);
+            $request['name'] = Str::lower($request['name']);
+            $request['source'] = Str::lower($request['source']);
 
             $user = auth('api')->user();
 
-            $data['enterprise_id'] = $user->enterprise_id;
-            $data['status'] = "0";
-            $data['type'] = "criado";
+            $request['enterprise_id'] = $user->enterprise_id;
+            $request['status'] = LeadDictionary::CREATED;
+            $request['type'] = FollowUpDictionary::CREATE;
 
-            if (!isset($data['message']) || $data['message'] == '') {
-                $data['message'] = "lead criado";
+            if (!$request->has('message') || !$request->get('message')) {
+                $request['message'] = FollowUpDictionary::CREATED_LEAD;
             }
             if ($user->type == "atendente") {
-                $data['user_id'] = $user->id;
+                $request['user_id'] = $user->id;
             }
 
-            $this->lead
-                ->create($data)
+            $data = $request->only('type', 'message');
+            $data['user_id'] = $user->id;
+
+            Lead::create($request->all())
                 ->followUp()
-                ->create([
-                    'type' => $data['type'],
-                    'message' => $data['message'],
-                    'user_id' => $user->id
-                ]);
+                ->create($data);
 
             return response()->json([
                 'data' => [
@@ -88,17 +82,11 @@ class LeadController extends Controller
     {
         try {
             $user = auth('api')->user();
-            $lead = $this->lead
-                ->with(['followUp', 'user'])
+            $lead = Lead::with(['followUp', 'user'])
                 ->where('enterprise_id', $user->enterprise_id)
                 ->find($id);
 
-            if (
-                isset($lead) &&
-                $user->enterprise_id == $lead->enterprise_id &&
-                ($user->type == "administrador" || ($user->type == "atendente" &&
-                    isset($lead) && $user->id == $lead->user_id))
-            ) {
+            if (isset($lead) && $user->enterprise_id == $lead->enterprise_id && ($user->type == UserDictionary::ADMINISTRATOR || ($user->type == UserDictionary::CLERK && $user->id == $lead->user_id))) {
                 return response()->json($lead, 200);
             }
         } catch (\Exception $e) {
@@ -111,15 +99,12 @@ class LeadController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $request['name'] = mb_strtolower($request['name'], 'UTF-8');
-            $request['source'] = mb_strtolower($request['source'], 'UTF-8');
-            $request['phone'] = mb_strtolower($request['phone'], 'UTF-8');
-            $request['email'] = mb_strtolower($request['email'], 'UTF-8');
-            $data = $request->all();
+            $request['email'] = Str::lower($request['email']);
+            $request['name'] = Str::lower($request['name']);
+            $request['source'] = Str::lower($request['source']);
 
-            $this->lead
-                ->findOrFail($id)
-                ->update($data);
+            Lead::findOrFail($id)
+                ->update($request->all());
 
             return response()->json([
                 'data' => [
@@ -138,8 +123,7 @@ class LeadController extends Controller
         try {
             FollowUp::where('lead_id', $id)->delete();
 
-            $this->lead
-                ->findOrFail($id)
+            Lead::findOrFail($id)
                 ->delete();
 
             return response()->json([
@@ -154,48 +138,33 @@ class LeadController extends Controller
         }
     }
 
-    //filtro
     public function filter(Request $request)
     {
         try {
-            $request['name'] = mb_strtolower($request['name'], 'UTF-8');
-            $request['source'] = mb_strtolower($request['source'], 'UTF-8');
-            $request['phone'] = mb_strtolower($request['phone'], 'UTF-8');
-            $request['email'] = mb_strtolower($request['email'], 'UTF-8');
-            $data = $request->all();
             $user = auth('api')->user();
 
-            $leads = $this->lead
-                ->with('user')
+            $lead = Lead::with('user', 'followup')
                 ->where('enterprise_id', $user->enterprise_id);
 
             if ($user->type == "atendente") {
-                $leads = $leads->where('user_id', $user->id);
-            }
-            if (isset($data['name']) && $data['name'] != '') {
-                $string = "%" . $data['name'] . "%";
-                $leads = $leads->where('name', 'LIKE', $string);
-            }
-            if (isset($data['phone']) && $data['phone'] != '') {
-                $string = "%" . $data['phone'] . "%";
-                $leads = $leads->where('phone', 'LIKE', $string);
-            }
-            if (isset($data['email']) && $data['email'] != '') {
-                $string = "%" . $data['email'] . "%";
-                $leads = $leads->where('email', 'LIKE', $string);
-            }
-            if (isset($data['source']) && $data['source'] != '') {
-                $string = "%" . $data['source'] . "%";
-                $leads = $leads->where('source', 'LIKE', $string);
-            }
-            if (isset($data['status']) && $data['status'] != '') {
-                $leads = $leads->where('status', $data['status']);
-            }
-            if (isset($data['user_id']) && $data['user_id'] != '') {
-                $leads = $leads->where('user_id', $data['user_id']);
+                $lead = $lead->where('user_id', $user->id);
             }
 
-            return response()->json($leads->orderBy('status')->get(), 200);
+            foreach ($request->only(['name', 'email', 'phone', 'source']) as $key => $value) {
+                if ($value != '' || $value != null) {
+                    $value = Str::lower($value);
+                    $value = "%" . $value . "%";
+                    $lead = $lead->where($key, 'LIKE', $value);
+                }
+            }
+
+            foreach ($request->only(['status', 'user_id']) as $key => $value) {
+                if ($value != '' || $value != null) {
+                    $lead = $lead->where($key, $value);
+                }
+            }
+
+            return response()->json($lead->orderBy('status')->get(), 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 

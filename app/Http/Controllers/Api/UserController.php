@@ -2,24 +2,21 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
-use Illuminate\Http\Request;
 use App\Api\ApiMessages;
-use App\Api\functions;
+use App\Dictionaries\LeadDictionary;
+use App\Dictionaries\UserDictionary;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use App\Http\Requests\UserRequest;
+use App\Http\Requests\UserUpdateRequest;
 use App\Models\Lead;
-use Illuminate\Support\Facades\Validator;
+use App\Models\User;
 
 class UserController extends Controller
 {
-    public $func;
-    private $user;
-
-    public function __construct(User $user)
+    public function __construct()
     {
-        $this->func = new functions();
-        $this->user = $user;
         $this->middleware('administrator')->only([
             'index',
             'store',
@@ -33,8 +30,7 @@ class UserController extends Controller
     {
         try {
             $user = auth('api')->user();
-            $users = $this->user
-                ->where('enterprise_id', $user->enterprise_id)
+            $users = User::where('enterprise_id', $user->enterprise_id)
                 ->where('id', '!=', $user->id)
                 ->orderBy('id');
 
@@ -49,20 +45,16 @@ class UserController extends Controller
     public function store(UserRequest $request)
     {
         try {
+            $request['email'] = Str::lower($request['email']);
+            $request['name'] = Str::lower($request['name']);
+
             $user = auth('api')->user();
-            $request['name'] = mb_strtolower($request['name'], 'UTF-8');
-            $request['email'] = mb_strtolower($request['email'], 'UTF-8');
+
             $data = $request->all();
-
-            Validator::make($data, [
-                'email' => 'required|email|unique:users',
-                'password' => 'required|string|min:8'
-            ])->validate();
-
             $data['password'] = bcrypt($data['password']);
             $data['enterprise_id'] = $user->enterprise_id;
 
-            $this->user->create($data);
+            User::create($data);
 
             return response()->json([
                 'data' => [
@@ -80,13 +72,13 @@ class UserController extends Controller
     {
         try {
             $user = auth('api')->user();
-            if ($this->func->admin($user)) {
-                $users = $this->user
-                    ->where('enterprise_id', $user->enterprise_id)
+
+            if ($user->type == UserDictionary::ADMINISTRATOR) {
+                $clerk = User::where('enterprise_id', $user->enterprise_id)
                     ->find($id);
 
-                if ($users != []) {
-                    return response()->json($users, 200);
+                if ($clerk != []) {
+                    return response()->json($clerk, 200);
                 }
             }
         } catch (\Exception $e) {
@@ -96,32 +88,21 @@ class UserController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(UserUpdateRequest $request, $id)
     {
         try {
-            $request['name'] = mb_strtolower($request['name'], 'UTF-8');
-            $request['email'] = mb_strtolower($request['email'], 'UTF-8');
+            $request['email'] = Str::lower($request['email']);
+            $request['name'] = Str::lower($request['name']);
+
             $data = $request->all();
 
-            Validator::make($data, [
-                'email' => 'email|unique:users,email,' . $id . ',id',
-            ])->validate();
-
-            if (
-                $request->has('password') && $request->has('password_confirmation') &&
-                $request->get('password') == $request->get('password_confirmation')
-            ) {
-                $data['password'] = bcrypt($data['password']);
-            } else if (!$request->has('password') && !$request->has('password_confirmation')) {
+            if (!$request->has('password')) {
                 unset($data['password']);
             } else {
-                $message = new ApiMessages('password anauthorized');
-    
-                return response()->json($message->getMessage(), 401);
+                $data['password'] = bcrypt($data['password']);
             }
 
-            $this->user
-                ->findOrFail($id)
+            User::findOrFail($id)
                 ->update($data);
 
             return response()->json([
@@ -139,8 +120,7 @@ class UserController extends Controller
     public function destroy($id)
     {
         try {
-            $this->user
-                ->findOrFail($id)
+            User::findOrFail($id)
                 ->update(['email' => null])
                 ->delete();
 
@@ -160,14 +140,13 @@ class UserController extends Controller
     {
         try {
             Lead::where('user_id', $id)
-                ->whereIn('status', [0, 1])
+                ->whereIn('status', [LeadDictionary::CREATED, LeadDictionary::PROGRESS])
                 ->update(['user_id' => $request['id']]);
 
-            $this->user
-                ->findOrFail($id)
+            User::findOrFail($id)
                 ->update(['email' => null]);
-            $this->user
-                ->findOrFail($id)
+
+            User::findOrFail($id)
                 ->delete();
 
             return response()->json([
@@ -185,26 +164,16 @@ class UserController extends Controller
     public function filter(Request $request)
     {
         try {
-            $request['name'] = mb_strtolower($request['name'], 'UTF-8');
-            $request['email'] = mb_strtolower($request['email'], 'UTF-8');
-            $request['type'] = mb_strtolower($request['type'], 'UTF-8');
-            $data = $request;
             $user = auth('api')->user();
-            $users = $this->user
-                ->where('enterprise_id', $user->enterprise_id)
+            $users = User::where('enterprise_id', $user->enterprise_id)
                 ->where('id', '!=', $user->id);
 
-            if ($data->has('name') && $data->get('name')) {
-                $string = "%" . $data['name'] . "%";
-                $users = $users->where('name', 'LIKE', $string);
-            }
-            if ($data->has('email') && $data->get('email')) {
-                $string = "%" . $data['email'] . "%";
-                $users = $users->where('email', 'LIKE', $string);
-            }
-            if ($data->has('type') && $data->get('type')) {
-                $string = "%" . $data['type'] . "%";
-                $users = $users->where('type', 'LIKE', $string);
+            foreach ($request->only(['name', 'email', 'type']) as $key => $value) {
+                if ($value != '' || $value != null) {
+                    $value = Str::lower($value);
+                    $value = "%" . $value . "%";
+                    $users = $users->where($key, 'LIKE', $value);
+                }
             }
 
             return response()->json($users->orderBy('id')->get(), 200);
@@ -219,9 +188,8 @@ class UserController extends Controller
     {
         try {
             $user = auth('api')->user();
-            $users = $this->user
-                ->where('enterprise_id', $user->enterprise_id)
-                ->where('type', '!=', 'administrador')
+            $users = User::where('enterprise_id', $user->enterprise_id)
+                ->where('type', '!=', UserDictionary::ADMINISTRATOR)
                 ->orderBy('id');
 
             return response()->json($users->get(), 200);

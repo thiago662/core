@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Api\ApiMessages;
 use Closure;
 use Illuminate\Http\Request;
 
@@ -17,11 +16,10 @@ class AdministratorMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-            if ( auth('api')->user()->type == 'administrador' )
-            {
-                return $next($request);
-            }else{
-                abort(403, "you aren't administrador");
-            }
+        if (auth('api')->user()->type == 'administrador') {
+            return $next($request);
+        } else {
+            abort(403, "you aren't administrador");
+        }
     }
 }

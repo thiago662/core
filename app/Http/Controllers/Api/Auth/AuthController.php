@@ -3,26 +3,30 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Api\ApiMessages;
+
+use App\Dictionaries\UserDictionary;
+use App\Dictionaries\LeadDictionary;
+use App\Dictionaries\FollowUpDictionary;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AuthRequest;
+use App\Http\Requests\SignupRequest;
 use App\Models\Enterprise;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+    public function __construct()
+    {
+    }
+
+    public function login(AuthRequest $request)
     {
         try {
-            $request['email'] = mb_strtolower($request['email'], 'UTF-8');
-            $credentials = $request->all(['email', 'password']);
-
-            Validator::make($credentials, [
-                'email' => 'required|string',
-                'password' => 'required|string|min:8'
-            ])->validate();
-
-            if (!$token = Auth::guard('api')->attempt($credentials)) {
+            $request['email'] = Str::lower($request['email']);
+            
+            if (!$token = Auth::guard('api')->attempt($request->only('email', 'password'))) {
                 $message = new ApiMessages('Unauthorized');
 
                 return response()->json($message->getMessage(), 401);
@@ -63,37 +67,25 @@ class AuthController extends Controller
         }
     }
 
-    public function signup(Request $request)
+    public function signup(SignupRequest $request)
     {
         try {
-            $request['name'] = mb_strtolower($request['name'], 'UTF-8');
-            $data = $request->all();
+            $request['name'] = Str::lower($request['name']);
 
-            Validator::make($data, [
-                'email' => 'required|email|unique:users',
-                'password' => 'required|string|min:8',
-                'password_confirmation' => 'required|string|min:8'
-            ])->validate();
+            Enterprise::create($request->all())
+                ->user()
+                ->create([
+                    'name' => Str::lower($request['name_user']),
+                    'email' => Str::lower($request['email']),
+                    'password' => bcrypt($request['password']),
+                    'type' => UserDictionary::ADMINISTRATOR
+                ]);
 
-            if (
-                $request->has('password') && $request->has('password_confirmation') &&
-                $request->get('password') == $request->get('password_confirmation')
-            ) {
-                Enterprise::create($data)
-                    ->user()
-                    ->create([
-                        'name' => mb_strtolower($data['name_user'], 'UTF-8'),
-                        'email' => mb_strtolower($data['email'], 'UTF-8'),
-                        'password' => bcrypt($data['password']),
-                        'type' => "administrador"
-                    ]);
-
-                return response()->json([
-                    'data' => [
-                        'msg' => 'Signup with success'
-                    ]
-                ], 200);
-            }
+            return response()->json([
+                'data' => [
+                    'message' => 'Signup with success'
+                ]
+            ], 200);
         } catch (\Exception $e) {
             $message = new ApiMessages($e->getMessage());
 
@@ -101,7 +93,6 @@ class AuthController extends Controller
         }
     }
 
-    //returno do token
     public function responseToken($token)
     {
         try {
