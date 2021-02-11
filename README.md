@@ -22,7 +22,7 @@ PROBLEMAS COM A PORTA
 RODAR O PROJETO
 
 1 - Baixar a pasta vendor com todas as dependencias
-    `composer update`
+    `composer install`
 
 2 - Downgrade no pacote jwt para a versão mais estavel
     `composer require lcobucci/jwt:3.3.3`
